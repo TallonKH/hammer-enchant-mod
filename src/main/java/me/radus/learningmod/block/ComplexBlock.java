@@ -1,4 +1,4 @@
-package me.radus.learningmod.blocks;
+package me.radus.learningmod.block;
 
 import me.radus.learningmod.ModBlocks;
 import net.minecraft.core.BlockPos;

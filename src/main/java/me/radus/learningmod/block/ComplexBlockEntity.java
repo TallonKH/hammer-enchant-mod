@@ -1,4 +1,4 @@
-package me.radus.learningmod.blocks;
+package me.radus.learningmod.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;

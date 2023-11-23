@@ -4,9 +4,9 @@ import com.tterrag.registrate.Registrate;
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
-import me.radus.learningmod.blocks.ComplexBlock;
-import me.radus.learningmod.blocks.ComplexBlockEntity;
-import me.radus.learningmod.blocks.SimpleBlock;
+import me.radus.learningmod.block.ComplexBlock;
+import me.radus.learningmod.block.ComplexBlockEntity;
+import me.radus.learningmod.block.SimpleBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 

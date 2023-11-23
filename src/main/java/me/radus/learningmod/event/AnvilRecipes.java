@@ -1,4 +1,4 @@
-package me.radus.learningmod.events;
+package me.radus.learningmod.event;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
