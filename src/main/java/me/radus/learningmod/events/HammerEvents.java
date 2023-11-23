@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class HammerEvents {
-    private static Set<UUID> currentlyMining = new HashSet<>();
+    private static final Set<UUID> currentlyMining = new HashSet<>();
 
     @SubscribeEvent
     public static void onBlockBreak(BlockEvent.BreakEvent event) {

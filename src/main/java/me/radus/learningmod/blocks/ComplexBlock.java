@@ -1,5 +1,6 @@
 package me.radus.learningmod.blocks;
 
+import me.radus.learningmod.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -20,7 +21,7 @@ public class ComplexBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ComplexBlockEntity(pos, state);
+        return new ComplexBlockEntity(ModBlocks.COMPLEX_BLOCK_ENTITY.get(), pos, state);
     }
 
     @Nullable

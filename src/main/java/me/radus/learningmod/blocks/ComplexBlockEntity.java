@@ -8,15 +8,14 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-
-import static me.radus.learningmod.Registration.COMPLEX_BLOCK_ENTITY;
 
 public class ComplexBlockEntity extends BlockEntity {
     private final static long TICKS_PER_SECOND = 20;
 
-    public ComplexBlockEntity(BlockPos pos, BlockState state) {
-        super(COMPLEX_BLOCK_ENTITY.get(), pos, state);
+    public ComplexBlockEntity(BlockEntityType<ComplexBlockEntity> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
     }
 
     public void onTick(Level level, BlockPos pos) {

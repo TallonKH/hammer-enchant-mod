@@ -1,5 +1,6 @@
 package me.radus.learningmod.blocks;
 
+import me.radus.learningmod.LearningMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -34,6 +35,7 @@ public class SimpleBlock extends Block {
 
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
+        LearningMod.LOGGER.debug("used!!!!!");
         if (level.isClientSide()) {
             final float soundVolume = 1.0f;
             final float soundPitch = 1.0f;

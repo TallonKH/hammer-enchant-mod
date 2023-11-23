@@ -17,6 +17,8 @@ base {
 // Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
+jarJar.enable()
+
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 minecraft {
     // The mappings can be changed at any time and must be in the following format.
@@ -128,6 +130,11 @@ repositories {
     //     dir 'libs'
     // }
 
+    // Registrate, Flywheel
+    maven {
+        url "https://maven.tterrag.com/"
+    }
+
     // JEI
     maven {
         url "https://maven.blamejared.com"
@@ -161,6 +168,11 @@ dependencies {
 
     // Jade (alternative to TOP and WAILA)
     implementation fg.deobf("curse.maven:jade-324717:${jade_version_id}")
+
+    implementation fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}")
+    jarJar("com.tterrag.registrate:Registrate:${registrate_version}") {
+        jarJar.ranged(it, '[MC1.18.2-1.1.3,)')
+    }
 
     // Example mod dependency using a mod jar from ./libs with a flat dir repository
     // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
@@ -231,3 +243,5 @@ publishing {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
+
+tasks.jarJar.finalizedBy('reobfJarJar')
