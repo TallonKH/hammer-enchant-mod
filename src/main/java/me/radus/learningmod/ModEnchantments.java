@@ -1,6 +1,6 @@
 package me.radus.learningmod;
 
-import me.radus.learningmod.enchantments.HammerEnchantment;
+import me.radus.learningmod.enchantment.HammerEnchantment;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
