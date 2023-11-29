@@ -24,7 +24,9 @@ public class ModBlocks {
             .blockEntity(ComplexBlockEntity::new).build()
             .register();
 
-    public static final BlockEntityEntry<ComplexBlockEntity> COMPLEX_BLOCK_ENTITY = REGISTRATE.blockEntity("complex_block_entity", ComplexBlockEntity::new).register();
+    public static final BlockEntityEntry<ComplexBlockEntity> COMPLEX_BLOCK_ENTITY = REGISTRATE
+            .blockEntity("complex_block_entity", ComplexBlockEntity::new)
+            .register();
 
     private static <T extends Block> BlockBuilder<T, Registrate> noPropBlock(String name, Supplier<T> factory) {
         return REGISTRATE.block(name, (BlockBehaviour.Properties props) -> factory.get());

@@ -15,22 +15,24 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
-@Mod(LearningMod.MODID)
+@Mod(LearningMod.MOD_ID)
 public class LearningMod {
-    public static final String MODID = "learningmod";
+    public static final String MOD_ID = "learningmod";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     private static final NonNullLazy<Registrate> REGISTRATE = NonNullLazy.of(
-            () -> Registrate.create(MODID)
+            () -> Registrate.create(MOD_ID)
                     .defaultCreativeTab("learning_tab", builder -> builder
                             .title(Component.literal("Learning!!"))
                             .icon(Items.BOOKSHELF::getDefaultInstance)).build()
 
     );
 
+    @NotNull
     public static Registrate registrate() {
         return REGISTRATE.get();
     }
@@ -38,10 +40,10 @@ public class LearningMod {
     public LearningMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        // Prevent JVM from optimizing away the class...
+        // Prevent JVM from optimizing away these classes...
         new ModBlocks();
+        new ModEnchantments();
 
-        ModEnchantments.init(modEventBus);
         modEventBus.addListener(this::onModCommonSetup);
 
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
