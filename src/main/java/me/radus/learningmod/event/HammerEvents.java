@@ -1,17 +1,17 @@
 package me.radus.learningmod.event;
 
 import me.radus.learningmod.ModEnchantments;
+import me.radus.learningmod.util.BlockBreakingHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class HammerEvents {
@@ -35,14 +35,13 @@ public class HammerEvents {
 
         currentlyMining.add(playerId);
 
-        BlockPos pos = event.getPos();
-        Direction facing = player.getDirection();
-        Direction left = facing.getClockWise();
-        Direction right = facing.getCounterClockWise();
+        BlockPos origin = event.getPos();
+        List<BlockPos> breakableBlocks = BlockBreakingHelper.getBreakableBlocks(player, origin);
+        ServerPlayerGameMode gameMode = player.gameMode;
 
-        player.gameMode.destroyBlock(pos);
-        player.gameMode.destroyBlock(pos.relative(left));
-        player.gameMode.destroyBlock(pos.relative(right));
+        for (BlockPos pos : breakableBlocks) {
+            gameMode.destroyBlock(pos);
+        }
 
         currentlyMining.remove(playerId);
         event.setCanceled(true);
