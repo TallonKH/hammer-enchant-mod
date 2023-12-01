@@ -7,6 +7,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -35,12 +37,16 @@ public class HammerEvents {
 
         currentlyMining.add(playerId);
 
+        Level level = player.level();
         BlockPos origin = event.getPos();
         List<BlockPos> breakableBlocks = BlockBreakingHelper.getBreakableBlocks(player, origin);
         ServerPlayerGameMode gameMode = player.gameMode;
 
         for (BlockPos pos : breakableBlocks) {
-            gameMode.destroyBlock(pos);
+            BlockState state = level.getBlockState(pos);
+            if (state.getBlock().canHarvestBlock(state, level, pos, player)) {
+                gameMode.destroyBlock(pos);
+            }
         }
 
         currentlyMining.remove(playerId);

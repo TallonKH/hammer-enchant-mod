@@ -20,5 +20,6 @@ public class ModEnchantments {
             .enchantment("hammer", EnchantmentCategory.DIGGER, HammerEnchantment::new)
             .rarity(Enchantment.Rarity.VERY_RARE)
             .addSlots(EquipmentSlot.MAINHAND)
+            .lang("Hammer")
             .register();
 }

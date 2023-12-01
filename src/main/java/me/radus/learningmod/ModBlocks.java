@@ -17,11 +17,13 @@ public class ModBlocks {
 
     public static final BlockEntry<SimpleBlock> SIMPLE_BLOCK = noPropBlock("simple_block", SimpleBlock::new)
             .simpleItem()
+            .lang("Simple Block")
             .register();
 
     public static final BlockEntry<ComplexBlock> COMPLEX_BLOCK = noPropBlock("complex_block", ComplexBlock::new)
             .simpleItem()
             .blockEntity(ComplexBlockEntity::new).build()
+            .lang("Complex Block")
             .register();
 
     public static final BlockEntityEntry<ComplexBlockEntity> COMPLEX_BLOCK_ENTITY = REGISTRATE

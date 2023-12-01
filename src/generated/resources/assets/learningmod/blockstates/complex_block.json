@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "learningmod:block/complex_block"
+    }
+  }
+}
