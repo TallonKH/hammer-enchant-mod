@@ -1,20 +1,19 @@
 package me.radus.learningmod.util;
 
+import com.google.common.collect.AbstractIterator;
 import me.radus.learningmod.ModEnchantments;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeHooks;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Iterator;
 
 public class MiningShapeHelpers {
     public static boolean hasMiningShapeModifiers(Player player) {
@@ -43,7 +42,17 @@ public class MiningShapeHelpers {
                 .relative(up, size.getY())
                 .relative(forward, size.getZ());
 
-        return BlockPos.betweenClosed(nearBottomLeft, farTopRight).iterator();
+        Iterator<BlockPos> rawBlocks = BlockPos.betweenClosed(nearBottomLeft, farTopRight).iterator();
+        if (!player.isCrouching()) {
+            return rawBlocks;
+        }
+
+        Level level = player.level();
+        BlockState originBlockState = level.getBlockState(origin);
+
+        return new FilteredIterator<>(rawBlocks, (BlockPos pos) ->
+                level.getBlockState(pos) == originBlockState
+        );
     }
 
     private static Vec3i getMiningSize(Player player) {

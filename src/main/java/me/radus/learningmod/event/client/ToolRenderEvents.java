@@ -3,18 +3,15 @@ package me.radus.learningmod.event.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import me.radus.learningmod.LearningMod;
-import me.radus.learningmod.ModEnchantments;
 import me.radus.learningmod.util.MiningShapeHelpers;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -24,7 +21,9 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.RenderHighlightEvent;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -46,20 +45,19 @@ public class ToolRenderEvents {
      */
     @SubscribeEvent
     static void renderBlockHighlights(RenderHighlightEvent.Block event) {
-        Level world = Minecraft.getInstance().level;
+        Level level = Minecraft.getInstance().level;
         Player player = Minecraft.getInstance().player;
-        if (world == null || player == null) {
+        if (level == null || player == null) {
             return;
         }
-        // must be targeting a block
-        HitResult result = Minecraft.getInstance().hitResult;
-        if (result == null || result.getType() != Type.BLOCK) {
-            return;
-        }
+
         BlockHitResult blockTrace = event.getTarget();
         BlockPos origin = blockTrace.getBlockPos();
-        BlockState state = world.getBlockState(origin);
-        if (!state.getBlock().canHarvestBlock(state, world, origin, player)) {
+        BlockState state = level.getBlockState(origin);
+        if (!state.getBlock().canHarvestBlock(state, level, origin, player)) {
+            return;
+        }
+        if (!ForgeHooks.canEntityDestroy(level, origin, player)) {
             return;
         }
 
@@ -93,17 +91,14 @@ public class ToolRenderEvents {
         do {
             BlockPos pos = breakableBlocks.next();
 
-            if (world.getWorldBorder().isWithinBounds(pos)) {
+            if (level.getWorldBorder().isWithinBounds(pos)) {
                 rendered++;
-                highlightBlock(pos, matrices, world, camX, camY, camZ, buffers, 0.0f, 1.0f, 0.0f, 0.0f);
+                highlightBlock(pos, matrices, level, camX, camY, camZ, buffers, 0.0f, 1.0f, 0.0f, 0.0f);
             }
         } while (rendered < MAX_BLOCKS && breakableBlocks.hasNext());
 
         matrices.popPose();
-
-        if (rendered > 0) {
-            event.setResult(Event.Result.DENY);
-        }
+        event.setCanceled(true);
     }
 
     // From SupportBlockRenderer:highlightPosition
