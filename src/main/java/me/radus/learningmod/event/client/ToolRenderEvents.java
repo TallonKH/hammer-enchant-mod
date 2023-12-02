@@ -1,26 +1,19 @@
 package me.radus.learningmod.event.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import me.radus.learningmod.LearningMod;
 import me.radus.learningmod.ModEnchantments;
-import me.radus.learningmod.enchantment.HammerEnchantment;
-import me.radus.learningmod.util.BlockBreakingHelper;
+import me.radus.learningmod.util.MiningShapeHelpers;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -32,13 +25,11 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderHighlightEvent;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.Iterator;
-import java.util.List;
 
 @SuppressWarnings("unused")
 @Mod.EventBusSubscriber(modid = LearningMod.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -72,12 +63,11 @@ public class ToolRenderEvents {
             return;
         }
 
-        int enchantmentLevel = EnchantmentHelper.getEnchantmentLevel(ModEnchantments.HAMMER_ENCHANTMENT.get(), player);
-        if (enchantmentLevel <= 0) {
+        if (!MiningShapeHelpers.hasMiningShapeModifiers(player)) {
             return;
         }
 
-        Iterator<BlockPos> breakableBlocks = BlockBreakingHelper.getBreakableBlocks(player, origin).iterator();
+        Iterator<BlockPos> breakableBlocks = MiningShapeHelpers.getBreakableBlocks(player, origin);
         if (!breakableBlocks.hasNext()) {
             return;
         }
