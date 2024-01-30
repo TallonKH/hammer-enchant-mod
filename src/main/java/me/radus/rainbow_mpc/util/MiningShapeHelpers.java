@@ -4,42 +4,65 @@ import me.radus.rainbow_mpc.ModEnchantments;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.client.Minecraft;
 
+import java.util.Collections;
 import java.util.Iterator;
 
 public class MiningShapeHelpers {
+
     public static boolean hasMiningShapeModifiers(Player player) {
         Vec3i size = getMiningSize(player);
         return size.getX() > 0 || size.getY() > 0 || size.getZ() > 0;
     }
 
     public static Iterator<BlockPos> getBreakableBlocks(Player player, BlockPos origin) {
-        final Vec3 upEstimateDir = new Vec3(0.0, 1.0, 0.0);
+        HitResult hitResult = Minecraft.getInstance().hitResult;
 
-        Vec3 lookDir = origin.getCenter().subtract(player.getEyePosition()).normalize();
-        Vec3 rightDir = lookDir.cross(upEstimateDir).normalize();
-        Vec3 upDir = rightDir.cross(lookDir).normalize();
+        if (hitResult == null || hitResult.getType() != HitResult.Type.BLOCK) {
+            return Collections.emptyIterator();
+        }
 
-        Direction forward = Direction.getNearest(lookDir.x(), lookDir.y(), lookDir.z());
-        Direction right = Direction.getNearest(rightDir.x(), rightDir.y(), rightDir.z());
-        Direction up = Direction.getNearest(upDir.x(), upDir.y(), upDir.z());
+        BlockHitResult blockHitResult = (BlockHitResult) hitResult;
 
-        Vec3i size = getMiningSize(player);
+        boolean facingEastWest = Math.floorMod(Math.round(player.getYRot() + 45), 180) > 90;
 
-        BlockPos nearBottomLeft = origin
-                .relative(right, -size.getX())
-                .relative(up, -size.getY());
-        BlockPos farTopRight = origin
-                .relative(right, size.getX())
-                .relative(up, size.getY())
-                .relative(forward, size.getZ());
+        // Get the world axes that correspond to the mining shape's depth/width/height.
+        Direction depthDir = blockHitResult.getDirection().getOpposite();
+        Direction heightDir;
+        Direction widthDir;
+        if (depthDir.getAxis().isVertical()){
+            if (facingEastWest) {
+                heightDir = Direction.EAST;
+                widthDir = Direction.SOUTH;
+            } else {
+                heightDir = Direction.SOUTH;
+                widthDir = Direction.EAST;
+            }
+        } else {
+            heightDir = Direction.UP;
+            widthDir = depthDir.getClockWise();
+        }
 
-        Iterator<BlockPos> rawBlocks = BlockPos.betweenClosed(nearBottomLeft, farTopRight).iterator();
+        // Get the corners of the mining shape.
+        Vec3i selectionSize = getMiningSize(player);
+        BlockPos minCorner = origin
+                .relative(heightDir, -selectionSize.getY())
+                .relative(widthDir, -selectionSize.getZ());
+        BlockPos maxCorner = origin
+                .relative(heightDir, selectionSize.getY())
+                .relative(widthDir, selectionSize.getZ())
+                .relative(depthDir, selectionSize.getX());
+
+        Iterator<BlockPos> rawBlocks = BlockPos.betweenClosed(minCorner, maxCorner).iterator();
         if (!player.isCrouching()) {
             return rawBlocks;
         }
