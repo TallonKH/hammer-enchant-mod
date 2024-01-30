@@ -79,34 +79,18 @@ public class MiningShapeHelpers {
         int surfaceEnchantLevel = EnchantmentHelper.getEnchantmentLevel(ModEnchantments.MINING_SHAPE_SURFACE_ENCHANTMENT.get(), player);
         int depthEnchantmentLevel = EnchantmentHelper.getEnchantmentLevel(ModEnchantments.MINING_SHAPE_DEPTH_ENCHANTMENT.get(), player);
 
-        int horizontal = 0;
-        int vertical = 0;
-        int depth = 0;
+        int width = 0;
+        int height = 0;
+        int depth = depthEnchantmentLevel;
 
-        switch (surfaceEnchantLevel) {
-            case 1 -> {
-                horizontal = 1;
-                vertical = 0;
-            }
-            case 2 -> {
-                horizontal = 1;
-                vertical = 1;
-            }
-            case 3 -> {
-                horizontal = 2;
-                vertical = 1;
-            }
+        if(surfaceEnchantLevel <= 4){
+            width = (int) Math.ceil(surfaceEnchantLevel / 2.0);
+            height = (int) Math.floor(surfaceEnchantLevel / 2.0);
+        } else {
+            width = surfaceEnchantLevel - 2;
+            height = surfaceEnchantLevel - 2;
         }
 
-        switch (depthEnchantmentLevel) {
-            case 1 -> {
-                depth = 1;
-            }
-            case 2 -> {
-                depth = 2;
-            }
-        }
-
-        return new Vec3i(horizontal, vertical, depth);
+        return new Vec3i(depth, height, width);
     }
 }
