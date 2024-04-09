@@ -4,10 +4,9 @@ import me.radus.rainbow_mpc.util.MiningShapeHelpers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -37,34 +36,31 @@ public class MiningShapeEvents {
         }
 
         BlockPos origin = event.getPos();
-        Iterator<BlockPos> breakableBlocks = MiningShapeHelpers.getBreakableBlocks(player, origin);
+        Iterator<BlockPos> targetBlockPositions = MiningShapeHelpers.getBreakableBlockPositions(player, origin);
         ServerPlayerGameMode gameMode = player.gameMode;
 
-        if (!breakableBlocks.hasNext()) {
+        if (!targetBlockPositions.hasNext()) {
             return;
         }
 
         BlockPos pos;
-        Level level = player.level();
+        ItemStack tool = player.getMainHandItem();
         playersCurrentlyMining.add(playerId);
 
+        int initialDamage = tool.getDamageValue();
+        int blocksBroken = 0;
+
         do {
-            pos = breakableBlocks.next();
-            if (canBreakBlock(level, pos, player)) {
-                gameMode.destroyBlock(pos);
-            }
-        } while (breakableBlocks.hasNext());
+            pos = targetBlockPositions.next();
+            gameMode.destroyBlock(pos);
+            blocksBroken++;
+        } while (targetBlockPositions.hasNext());
+
+        int damagePenalty = (int) Math.ceil(Math.sqrt(blocksBroken));
+
+        tool.setDamageValue(initialDamage + damagePenalty);
 
         playersCurrentlyMining.remove(playerId);
         event.setCanceled(true);
-    }
-
-    private static boolean canBreakBlock(Level level, BlockPos pos, Player player) {
-        if (!ForgeHooks.canEntityDestroy(level, pos, player)) {
-            return false;
-        }
-
-        BlockState state = level.getBlockState(pos);
-        return state.getDestroySpeed(level, pos) > 0.0f;
     }
 }

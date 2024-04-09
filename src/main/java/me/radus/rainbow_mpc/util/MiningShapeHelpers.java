@@ -4,14 +4,12 @@ import me.radus.rainbow_mpc.ModEnchantments;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.client.Minecraft;
 
 import java.util.Collections;
@@ -24,7 +22,20 @@ public class MiningShapeHelpers {
         return size.getX() > 0 || size.getY() > 0 || size.getZ() > 0;
     }
 
-    public static Iterator<BlockPos> getBreakableBlocks(Player player, BlockPos origin) {
+    public static Iterator<BlockPos> getBreakableBlockPositions(Player player, BlockPos origin) {
+        Level level = player.level();
+        BlockState originBlockState = level.getBlockState(origin);
+        return new FilteredIterator<>(getAllBlockPositions(player, origin), blockPos -> {
+            BlockState blockState = level.getBlockState(blockPos);
+            if(player.isCrouching() && originBlockState != blockState){
+                return false;
+            }
+
+            return player.hasCorrectToolForDrops(blockState);
+        });
+    }
+
+    public static Iterator<BlockPos> getAllBlockPositions(Player player, BlockPos origin) {
         HitResult hitResult = Minecraft.getInstance().hitResult;
 
         if (hitResult == null || hitResult.getType() != HitResult.Type.BLOCK) {
@@ -62,17 +73,7 @@ public class MiningShapeHelpers {
                 .relative(widthDir, selectionSize.getZ())
                 .relative(depthDir, selectionSize.getX());
 
-        Iterator<BlockPos> rawBlocks = BlockPos.betweenClosed(minCorner, maxCorner).iterator();
-        if (!player.isCrouching()) {
-            return rawBlocks;
-        }
-
-        Level level = player.level();
-        BlockState originBlockState = level.getBlockState(origin);
-
-        return new FilteredIterator<>(rawBlocks, (BlockPos pos) ->
-                level.getBlockState(pos) == originBlockState
-        );
+        return BlockPos.betweenClosed(minCorner, maxCorner).iterator();
     }
 
     private static Vec3i getMiningSize(Player player) {

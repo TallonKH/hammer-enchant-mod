@@ -49,19 +49,7 @@ public class ToolRenderEvents {
 
         BlockHitResult blockTrace = event.getTarget();
         BlockPos origin = blockTrace.getBlockPos();
-        BlockState state = level.getBlockState(origin);
-        if (!state.getBlock().canHarvestBlock(state, level, origin, player)) {
-            return;
-        }
-        if (!ForgeHooks.canEntityDestroy(level, origin, player)) {
-            return;
-        }
-
-        if (!MiningShapeHelpers.hasMiningShapeModifiers(player)) {
-            return;
-        }
-
-        Iterator<BlockPos> breakableBlocks = MiningShapeHelpers.getBreakableBlocks(player, origin);
+        Iterator<BlockPos> breakableBlocks = MiningShapeHelpers.getBreakableBlockPositions(player, origin);
         if (!breakableBlocks.hasNext()) {
             return;
         }
