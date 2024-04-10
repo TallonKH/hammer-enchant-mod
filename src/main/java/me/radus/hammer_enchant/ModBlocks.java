@@ -1,19 +1,19 @@
-package me.radus.rainbow_mpc;
+package me.radus.hammer_enchant;
 
 import com.tterrag.registrate.Registrate;
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
-import me.radus.rainbow_mpc.block.ComplexBlock;
-import me.radus.rainbow_mpc.block.ComplexBlockEntity;
-import me.radus.rainbow_mpc.block.SimpleBlock;
+import me.radus.hammer_enchant.block.ComplexBlock;
+import me.radus.hammer_enchant.block.ComplexBlockEntity;
+import me.radus.hammer_enchant.block.SimpleBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
 import java.util.function.Supplier;
 
 public class ModBlocks {
-    private static final Registrate REGISTRATE = RainbowMpc.registrate();
+    private static final Registrate REGISTRATE = HammerEnchantMod.registrate();
 
     public static final BlockEntry<SimpleBlock> SIMPLE_BLOCK = noPropBlock("simple_block", SimpleBlock::new)
             .simpleItem()

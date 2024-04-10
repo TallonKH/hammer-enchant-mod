@@ -1,4 +1,4 @@
-package me.radus.rainbow_mpc;
+package me.radus.hammer_enchant;
 
 import com.mojang.logging.LogUtils;
 import com.tterrag.registrate.Registrate;
@@ -18,15 +18,15 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-@Mod(RainbowMpc.MOD_ID)
-public class RainbowMpc {
+@Mod(HammerEnchantMod.MOD_ID)
+public class HammerEnchantMod {
     public static final String MOD_ID = "rainbow_mpc";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     private static final NonNullLazy<Registrate> REGISTRATE = NonNullLazy.of(
             () -> Registrate.create(MOD_ID)
-                    .defaultCreativeTab("rainbow_mpc", builder -> builder
-                            .title(Component.literal("Rainbow Modpack"))
+                    .defaultCreativeTab("hammer_enchant", builder -> builder
+                            .title(Component.literal("Hammer Enchant"))
                             .icon(Items.BOOKSHELF::getDefaultInstance)).build()
     );
 
@@ -35,7 +35,7 @@ public class RainbowMpc {
         return REGISTRATE.get();
     }
 
-    public RainbowMpc() {
+    public HammerEnchantMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         // Prevent JVM from optimizing away these classes...

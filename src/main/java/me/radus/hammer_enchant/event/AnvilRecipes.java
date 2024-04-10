@@ -1,4 +1,4 @@
-package me.radus.rainbow_mpc.event;
+package me.radus.hammer_enchant.event;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;

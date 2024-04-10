@@ -1,4 +1,4 @@
-package me.radus.rainbow_mpc.enchantment;
+package me.radus.hammer_enchant.enchantment;
 
 import com.tterrag.registrate.builders.EnchantmentBuilder.EnchantmentFactory;
 import net.minecraft.world.entity.EquipmentSlot;

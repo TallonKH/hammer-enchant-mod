@@ -1,6 +1,6 @@
-package me.radus.rainbow_mpc.util;
+package me.radus.hammer_enchant.util;
 
-import me.radus.rainbow_mpc.ModEnchantments;
+import me.radus.hammer_enchant.ModEnchantments;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;

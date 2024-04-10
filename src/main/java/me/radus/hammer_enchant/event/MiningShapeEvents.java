@@ -1,12 +1,10 @@
-package me.radus.rainbow_mpc.event;
+package me.radus.hammer_enchant.event;
 
-import me.radus.rainbow_mpc.util.MiningShapeHelpers;
+import me.radus.hammer_enchant.util.MiningShapeHelpers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
