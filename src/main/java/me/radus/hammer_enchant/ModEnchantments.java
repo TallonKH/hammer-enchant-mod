@@ -14,13 +14,11 @@ public class ModEnchantments {
             .enchantment("mining_shape_surface", EnchantmentCategory.DIGGER, MiningShapeEnchantment.build(3))
             .rarity(Enchantment.Rarity.VERY_RARE)
             .addSlots(EquipmentSlot.MAINHAND)
-            .lang("Mining Shape Surface")
             .register();
 
     public static final RegistryEntry<MiningShapeEnchantment> MINING_SHAPE_DEPTH_ENCHANTMENT = REGISTRATE
             .enchantment("mining_shape_depth", EnchantmentCategory.DIGGER, MiningShapeEnchantment.build(2))
             .rarity(Enchantment.Rarity.VERY_RARE)
             .addSlots(EquipmentSlot.MAINHAND)
-            .lang("Mining Shape Depth")
             .register();
 }
