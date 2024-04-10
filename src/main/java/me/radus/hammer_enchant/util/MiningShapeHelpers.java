@@ -4,6 +4,7 @@ import me.radus.hammer_enchant.ModEnchantments;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -25,6 +26,13 @@ public class MiningShapeHelpers {
     public static Iterator<BlockPos> getBreakableBlockPositions(Player player, BlockPos origin) {
         Level level = player.level();
         BlockState originBlockState = level.getBlockState(origin);
+
+        if(!player.hasCorrectToolForDrops(originBlockState) || originBlockState.getDestroySpeed(level, origin) == 0){
+            return Collections.emptyIterator();
+        }
+
+        player.sendSystemMessage(Component.literal("hi"));
+
         return new FilteredIterator<>(getAllBlockPositions(player, origin), blockPos -> {
             BlockState blockState = level.getBlockState(blockPos);
             if(player.isCrouching() && originBlockState != blockState){

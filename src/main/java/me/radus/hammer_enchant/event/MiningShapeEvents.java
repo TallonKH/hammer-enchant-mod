@@ -46,15 +46,16 @@ public class MiningShapeEvents {
         playersCurrentlyMining.add(playerId);
 
         int initialDamage = tool.getDamageValue();
-        int blocksBroken = 0;
+        tool.setDamageValue(0);
 
         do {
             pos = targetBlockPositions.next();
             gameMode.destroyBlock(pos);
-            blocksBroken++;
         } while (targetBlockPositions.hasNext());
 
-        int damagePenalty = (int) Math.ceil(Math.sqrt(blocksBroken));
+        int rawDamageTaken = tool.getDamageValue() - initialDamage;
+
+        int damagePenalty = (int) Math.ceil(Math.sqrt(rawDamageTaken));
 
         tool.setDamageValue(initialDamage + damagePenalty);
 

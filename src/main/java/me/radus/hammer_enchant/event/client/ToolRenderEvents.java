@@ -23,6 +23,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.Iterator;
+import java.util.UUID;
 
 @SuppressWarnings("unused")
 @Mod.EventBusSubscriber(modid = HammerEnchantMod.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -42,6 +43,10 @@ public class ToolRenderEvents {
         Level level = Minecraft.getInstance().level;
         Player player = Minecraft.getInstance().player;
         if (level == null || player == null) {
+            return;
+        }
+
+        if (!MiningShapeHelpers.hasMiningShapeModifiers(player)) {
             return;
         }
 
