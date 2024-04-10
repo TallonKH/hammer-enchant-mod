@@ -1,3 +1,3 @@
-# Create Rainbow Modpack Companion
+# Hammer Enchant Mod
 
-it do thing
+Minecraft mod that adds enchantments for mining many blocks at once.
