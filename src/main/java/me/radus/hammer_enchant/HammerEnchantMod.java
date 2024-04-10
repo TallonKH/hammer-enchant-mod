@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 
 @Mod(HammerEnchantMod.MOD_ID)
 public class HammerEnchantMod {
-    public static final String MOD_ID = "rainbow_mpc";
+    public static final String MOD_ID = "hammer_enchant";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     private static final NonNullLazy<Registrate> REGISTRATE = NonNullLazy.of(
@@ -39,7 +39,6 @@ public class HammerEnchantMod {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         // Prevent JVM from optimizing away these classes...
-        new ModBlocks();
         new ModEnchantments();
 
         modEventBus.addListener(this::onModCommonSetup);
