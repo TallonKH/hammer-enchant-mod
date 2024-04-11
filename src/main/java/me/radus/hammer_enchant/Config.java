@@ -16,10 +16,14 @@ public class Config {
     public static final ForgeConfigSpec.ConfigValue<String> DURABILITY_MODE = BUILDER
             .comment("Durability mode [NORMAL/SQRT]")
             .define("durabilityMode", "NORMAL");
+    public static final ForgeConfigSpec.ConfigValue<Float> MINING_SPEED_CHEAT_CAP = BUILDER
+            .comment("Limit to how much harder a block can be than the center block. Basically, prevents mining obsidian by mining stone next to it. 0=only blocks with same or lower hardness will be mined. ")
+            .define("miningSpeedCheatCap", 2.0F);
 
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static DurabilityMode durabilityMode;
+    public static float miningSpeedCheatCap;
 
     private static boolean validateItemName(final Object obj) {
         return obj instanceof final String itemName && ForgeRegistries.ITEMS.containsKey(new ResourceLocation(itemName));
@@ -28,5 +32,6 @@ public class Config {
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
         durabilityMode = DurabilityMode.fromString(DURABILITY_MODE.get());
+        miningSpeedCheatCap = MINING_SPEED_CHEAT_CAP.get();
     }
 }
