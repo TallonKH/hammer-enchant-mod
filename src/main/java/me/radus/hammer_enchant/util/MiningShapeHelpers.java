@@ -31,8 +31,6 @@ public class MiningShapeHelpers {
             return Collections.emptyIterator();
         }
 
-        player.sendSystemMessage(Component.literal("hi"));
-
         return new FilteredIterator<>(getAllBlockPositions(player, origin), blockPos -> {
             BlockState blockState = level.getBlockState(blockPos);
             if(player.isCrouching() && originBlockState != blockState){

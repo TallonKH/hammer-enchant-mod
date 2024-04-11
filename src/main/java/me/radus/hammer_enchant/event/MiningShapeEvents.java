@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -46,14 +47,16 @@ public class MiningShapeEvents {
         playersCurrentlyMining.add(playerId);
 
         int initialDamage = tool.getDamageValue();
+        int blocksMined = 0;
         tool.setDamageValue(0);
 
         do {
             pos = targetBlockPositions.next();
             gameMode.destroyBlock(pos);
+            blocksMined++;
         } while (targetBlockPositions.hasNext());
 
-        int rawDamageTaken = tool.getDamageValue() - initialDamage;
+        int rawDamageTaken = Integer.max(blocksMined, tool.getDamageValue() - initialDamage);
 
         int damagePenalty = (int) Math.ceil(Math.sqrt(rawDamageTaken));
 

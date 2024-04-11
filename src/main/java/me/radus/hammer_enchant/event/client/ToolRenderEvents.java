@@ -99,7 +99,7 @@ public class ToolRenderEvents {
         VertexConsumer vertexBuilder = bufferSource.getBuffer(RenderType.lines());
         VoxelShape shape = level
                 .getBlockState(pos)
-                .getCollisionShape(level, pos, CollisionContext.empty())
+                .getShape(level, pos)
                 .move(pos.getX(), pos.getY(), pos.getZ());
 
 //        LevelRenderer.renderLineBox(poseStack, bufferSource.getBuffer(RenderType.lines()), d0, d1, d2, d3, d4, d5, pRed, pGreen, pBlue, 0.4F);

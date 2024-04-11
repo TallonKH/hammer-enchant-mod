@@ -27,7 +27,7 @@ public class HammerEnchantMod {
             () -> Registrate.create(MOD_ID)
                     .defaultCreativeTab("hammer_enchant", builder -> builder
                             .title(Component.literal("Hammer Enchant"))
-                            .icon(Items.BOOKSHELF::getDefaultInstance)).build()
+                            .icon(Items.ENCHANTED_BOOK::getDefaultInstance)).build()
     );
 
     @NotNull
