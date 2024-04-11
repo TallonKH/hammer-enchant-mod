@@ -1,5 +1,7 @@
 package me.radus.hammer_enchant.event;
 
+import me.radus.hammer_enchant.Config;
+import me.radus.hammer_enchant.HammerEnchantMod;
 import me.radus.hammer_enchant.util.MiningShapeHelpers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -47,18 +49,17 @@ public class MiningShapeEvents {
         playersCurrentlyMining.add(playerId);
 
         int initialDamage = tool.getDamageValue();
-        int blocksMined = 0;
+        // The damage calculation might decrease how much damage the tool takes.
+        // As a precaution, temporarily set the tool to undamaged such that it doesn't break prematurely.
         tool.setDamageValue(0);
 
         do {
             pos = targetBlockPositions.next();
             gameMode.destroyBlock(pos);
-            blocksMined++;
         } while (targetBlockPositions.hasNext());
 
-        int rawDamageTaken = Integer.max(blocksMined, tool.getDamageValue() - initialDamage);
-
-        int damagePenalty = (int) Math.ceil(Math.sqrt(rawDamageTaken));
+        int rawDamageTaken = tool.getDamageValue();
+        int damagePenalty = Config.durabilityMode.calculate(rawDamageTaken);
 
         tool.setDamageValue(initialDamage + damagePenalty);
 
