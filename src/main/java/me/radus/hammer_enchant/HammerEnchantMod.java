@@ -2,6 +2,7 @@ package me.radus.hammer_enchant;
 
 import com.mojang.logging.LogUtils;
 import com.tterrag.registrate.Registrate;
+import me.radus.hammer_enchant.datagen.Generators;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -39,11 +40,13 @@ public class HammerEnchantMod {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         // Prevent JVM from optimizing away these classes...
-        new ModEnchantments();
+        new Generators();
 
         modEventBus.addListener(this::onModCommonSetup);
+        ModEnchantments.register(modEventBus);
 
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
+        MinecraftForge.EVENT_BUS.register(Generators.class);
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);

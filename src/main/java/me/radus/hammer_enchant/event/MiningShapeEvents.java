@@ -1,25 +1,81 @@
 package me.radus.hammer_enchant.event;
 
 import me.radus.hammer_enchant.Config;
-import me.radus.hammer_enchant.HammerEnchantMod;
+import me.radus.hammer_enchant.tag.ModTags;
 import me.radus.hammer_enchant.util.MiningShapeHelpers;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class MiningShapeEvents {
     private static final Set<UUID> playersCurrentlyMining = new HashSet<>();
+    private static final Set<UUID> playersCurrentlyTilling = new HashSet<>();
+
+    public static boolean blockTillingPredicate(Level level, Player player, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState){
+        return neighborBlockState.is(ModTags.Blocks.TILLABLE_BLOCK_TAG) && level.getBlockState(neighborPos.above()).isAir();
+    }
+
+    public static boolean blockMiningPredicate(Level level, Player player, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState){
+        return player.hasCorrectToolForDrops(neighborBlockState) && neighborBlockState.getDestroySpeed(level, neighborPos) <= neighborBlockState.getDestroySpeed(level, originPos) + Config.MINING_SPEED_CHEAT_CAP.get();
+    }
+
+    @SubscribeEvent
+    public static void onPlayerInteract(PlayerInteractEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+
+
+        if(player.getItemInHand(event.getHand()).getItem() instanceof HoeItem){
+            UUID playerId = player.getUUID();
+            if (playersCurrentlyTilling.contains(playerId)) {
+                return;
+            }
+
+            if(!MiningShapeHelpers.hasMiningShapeModifiers(player)){
+                return;
+            }
+
+            BlockPos origin = event.getPos();
+            Iterator<BlockPos> targetBlockPositions = MiningShapeHelpers.getCandidateBlockPositions(player, origin, MiningShapeEvents::blockTillingPredicate);
+
+            if (!targetBlockPositions.hasNext()) {
+                return;
+            }
+
+            BlockPos pos;
+            playersCurrentlyTilling.add(playerId);
+
+            int blocksConverted = 0;
+            do {
+                pos = targetBlockPositions.next();
+                event.getLevel().setBlock(pos, Blocks.FARMLAND.defaultBlockState(), Block.UPDATE_ALL_IMMEDIATE);
+                blocksConverted ++;
+            } while (targetBlockPositions.hasNext());
+
+            int damagePenalty = Config.durabilityMode.calculate(blocksConverted);
+            player.getMainHandItem().hurtAndBreak(damagePenalty, player, (a) -> {});
+
+            playersCurrentlyTilling.remove(playerId);
+            event.setCanceled(true);
+        }
+    }
 
     @SubscribeEvent
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
@@ -37,7 +93,16 @@ public class MiningShapeEvents {
         }
 
         BlockPos origin = event.getPos();
-        Iterator<BlockPos> targetBlockPositions = MiningShapeHelpers.getBreakableBlockPositions(player, origin);
+        Level level = player.level();
+        BlockState originBlockState = level.getBlockState(origin);
+        float originDestroySpeed = originBlockState.getDestroySpeed(level, origin);
+        float maxDestroySpeed = originDestroySpeed + Config.miningSpeedCheatCap;
+
+        if(!player.hasCorrectToolForDrops(originBlockState) || originDestroySpeed <= 0.1){
+            return;
+        }
+
+        Iterator<BlockPos> targetBlockPositions = MiningShapeHelpers.getCandidateBlockPositions(player, origin, MiningShapeEvents::blockMiningPredicate);
         ServerPlayerGameMode gameMode = player.gameMode;
 
         if (!targetBlockPositions.hasNext()) {

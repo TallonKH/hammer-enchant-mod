@@ -2,10 +2,10 @@ package me.radus.hammer_enchant.util;
 
 import me.radus.hammer_enchant.Config;
 import me.radus.hammer_enchant.ModEnchantments;
+import me.radus.hammer_enchant.tag.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -16,6 +16,7 @@ import net.minecraft.client.Minecraft;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.function.BiPredicate;
 
 public class MiningShapeHelpers {
 
@@ -24,28 +25,21 @@ public class MiningShapeHelpers {
         return size.getX() > 0 || size.getY() > 0 || size.getZ() > 0;
     }
 
-    public static Iterator<BlockPos> getBreakableBlockPositions(Player player, BlockPos origin) {
+    public interface NeighborPredicate{
+        public boolean test(Level level, Player player, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState);
+    }
+
+    public static Iterator<BlockPos> getCandidateBlockPositions(Player player, BlockPos origin, NeighborPredicate neighborPredicate) {
         Level level = player.level();
         BlockState originBlockState = level.getBlockState(origin);
 
-        float originDestroySpeed = originBlockState.getDestroySpeed(level, origin);
-
-        if(!player.hasCorrectToolForDrops(originBlockState) || originDestroySpeed <= 0.1){
-            return Collections.emptyIterator();
-        }
-
-        float maxDestroySpeed = originDestroySpeed + Config.miningSpeedCheatCap;
-
         return new FilteredIterator<>(getAllBlockPositions(player, origin), blockPos -> {
             BlockState blockState = level.getBlockState(blockPos);
-            if(blockState.getDestroySpeed(level, blockPos) > maxDestroySpeed){
-                return false;
-            }
-            if(player.isCrouching() && originBlockState != blockState){
+            if(player.isCrouching() && originBlockState.getBlock() != blockState.getBlock()){
                 return false;
             }
 
-            return player.hasCorrectToolForDrops(blockState);
+            return neighborPredicate.test(level, player, origin, originBlockState, blockPos, blockState);
         });
     }
 
