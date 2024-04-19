@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,20 +21,16 @@ import java.util.function.BiPredicate;
 
 public class MiningShapeHelpers {
 
-    public static boolean hasMiningShapeModifiers(Player player) {
-        Vec3i size = getMiningSize(player);
-        return size.getX() > 0 || size.getY() > 0 || size.getZ() > 0;
-    }
 
     public interface NeighborPredicate{
         public boolean test(Level level, Player player, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState);
     }
 
-    public static Iterator<BlockPos> getCandidateBlockPositions(Player player, BlockPos origin, NeighborPredicate neighborPredicate) {
+    public static Iterator<BlockPos> getCandidateBlockPositions(Player player, ItemStack tool, HitResult hitResult, BlockPos origin, NeighborPredicate neighborPredicate) {
         Level level = player.level();
         BlockState originBlockState = level.getBlockState(origin);
 
-        return new FilteredIterator<>(getAllBlockPositions(player, origin), blockPos -> {
+        return new FilteredIterator<>(getAllBlockPositions(player, tool, hitResult, origin), blockPos -> {
             BlockState blockState = level.getBlockState(blockPos);
             if(player.isCrouching() && originBlockState.getBlock() != blockState.getBlock()){
                 return false;
@@ -43,9 +40,7 @@ public class MiningShapeHelpers {
         });
     }
 
-    public static Iterator<BlockPos> getAllBlockPositions(Player player, BlockPos origin) {
-        HitResult hitResult = Minecraft.getInstance().hitResult;
-
+    public static Iterator<BlockPos> getAllBlockPositions(Player player, ItemStack tool, HitResult hitResult, BlockPos origin) {
         if (hitResult == null || hitResult.getType() != HitResult.Type.BLOCK) {
             return Collections.emptyIterator();
         }
@@ -72,7 +67,7 @@ public class MiningShapeHelpers {
         }
 
         // Get the corners of the mining shape.
-        Vec3i selectionSize = getMiningSize(player);
+        Vec3i selectionSize = getMiningSize(tool);
         BlockPos minCorner = origin
                 .relative(heightDir, -selectionSize.getY())
                 .relative(widthDir, -selectionSize.getZ());
@@ -84,13 +79,12 @@ public class MiningShapeHelpers {
         return BlockPos.betweenClosed(minCorner, maxCorner).iterator();
     }
 
-    private static Vec3i getMiningSize(Player player) {
-        int surfaceEnchantLevel = EnchantmentHelper.getEnchantmentLevel(ModEnchantments.MINING_SHAPE_SURFACE_ENCHANTMENT.get(), player);
-        int depthEnchantmentLevel = EnchantmentHelper.getEnchantmentLevel(ModEnchantments.MINING_SHAPE_DEPTH_ENCHANTMENT.get(), player);
+    private static Vec3i getMiningSize(ItemStack itemStack) {
+        int surfaceEnchantLevel = itemStack.getEnchantmentLevel(ModEnchantments.MINING_SHAPE_SURFACE_ENCHANTMENT.get());
+        int depthEnchantLevel = itemStack.getEnchantmentLevel(ModEnchantments.MINING_SHAPE_DEPTH_ENCHANTMENT.get());
 
         int width = 0;
         int height = 0;
-        int depth = depthEnchantmentLevel;
 
         if(surfaceEnchantLevel <= 4){
             width = (int) Math.ceil(surfaceEnchantLevel / 2.0);
@@ -100,6 +94,11 @@ public class MiningShapeHelpers {
             height = surfaceEnchantLevel - 2;
         }
 
-        return new Vec3i(depth, height, width);
+        return new Vec3i(depthEnchantLevel, height, width);
+    }
+    
+    public static boolean hasMiningShapeModifiers(ItemStack tool) {
+        Vec3i size = getMiningSize(tool);
+        return size.getX() > 0 || size.getY() > 0 || size.getZ() > 0;
     }
 }

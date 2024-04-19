@@ -3,6 +3,7 @@ package me.radus.hammer_enchant.event;
 import me.radus.hammer_enchant.Config;
 import me.radus.hammer_enchant.tag.ModTags;
 import me.radus.hammer_enchant.util.MiningShapeHelpers;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -36,44 +37,60 @@ public class MiningShapeEvents {
     }
 
     @SubscribeEvent
-    public static void onPlayerInteract(PlayerInteractEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) {
+    public static void onPlayerInteract(PlayerInteractEvent someEvent) {
+        if (!(someEvent.getEntity() instanceof ServerPlayer player)) {
             return;
         }
 
+        if(someEvent instanceof PlayerInteractEvent.RightClickBlock rightClickBlockEvent) {
+            ItemStack tool = rightClickBlockEvent.getItemStack();
+            if (tool.getItem() instanceof HoeItem) {
+                UUID playerId = player.getUUID();
+                if (playersCurrentlyTilling.contains(playerId)) {
+                    return;
+                }
 
-        if(player.getItemInHand(event.getHand()).getItem() instanceof HoeItem){
-            UUID playerId = player.getUUID();
-            if (playersCurrentlyTilling.contains(playerId)) {
-                return;
+                if (!MiningShapeHelpers.hasMiningShapeModifiers(tool)) {
+                    return;
+                }
+
+                Level level = rightClickBlockEvent.getLevel();
+                BlockPos origin = rightClickBlockEvent.getPos();
+                BlockState originBlockState = level.getBlockState(origin);
+
+                if (!(originBlockState.is(ModTags.Blocks.TILLABLE_BLOCK_TAG) && level.getBlockState(origin.above()).isAir())) {
+                    return;
+                }
+
+                Iterator<BlockPos> targetBlockPositions = MiningShapeHelpers.getCandidateBlockPositions(
+                        player,
+                        tool,
+                        rightClickBlockEvent.getHitVec(),
+                        origin,
+                        MiningShapeEvents::blockTillingPredicate
+                );
+
+                if (!targetBlockPositions.hasNext()) {
+                    return;
+                }
+
+                BlockPos pos;
+                playersCurrentlyTilling.add(playerId);
+
+                int blocksConverted = 0;
+                do {
+                    pos = targetBlockPositions.next();
+                    someEvent.getLevel().setBlock(pos, Blocks.FARMLAND.defaultBlockState(), Block.UPDATE_ALL_IMMEDIATE);
+                    blocksConverted++;
+                } while (targetBlockPositions.hasNext());
+
+                int damagePenalty = Config.durabilityMode.calculate(blocksConverted);
+                player.getMainHandItem().hurtAndBreak(damagePenalty, player, (a) -> {
+                });
+
+                playersCurrentlyTilling.remove(playerId);
+                rightClickBlockEvent.setCanceled(true);
             }
-
-            if(!MiningShapeHelpers.hasMiningShapeModifiers(player)){
-                return;
-            }
-
-            BlockPos origin = event.getPos();
-            Iterator<BlockPos> targetBlockPositions = MiningShapeHelpers.getCandidateBlockPositions(player, origin, MiningShapeEvents::blockTillingPredicate);
-
-            if (!targetBlockPositions.hasNext()) {
-                return;
-            }
-
-            BlockPos pos;
-            playersCurrentlyTilling.add(playerId);
-
-            int blocksConverted = 0;
-            do {
-                pos = targetBlockPositions.next();
-                event.getLevel().setBlock(pos, Blocks.FARMLAND.defaultBlockState(), Block.UPDATE_ALL_IMMEDIATE);
-                blocksConverted ++;
-            } while (targetBlockPositions.hasNext());
-
-            int damagePenalty = Config.durabilityMode.calculate(blocksConverted);
-            player.getMainHandItem().hurtAndBreak(damagePenalty, player, (a) -> {});
-
-            playersCurrentlyTilling.remove(playerId);
-            event.setCanceled(true);
         }
     }
 
@@ -88,7 +105,9 @@ public class MiningShapeEvents {
             return;
         }
 
-        if (!MiningShapeHelpers.hasMiningShapeModifiers(player)) {
+        ItemStack tool = player.getMainHandItem();
+
+        if (!MiningShapeHelpers.hasMiningShapeModifiers(tool)) {
             return;
         }
 
@@ -96,13 +115,18 @@ public class MiningShapeEvents {
         Level level = player.level();
         BlockState originBlockState = level.getBlockState(origin);
         float originDestroySpeed = originBlockState.getDestroySpeed(level, origin);
-        float maxDestroySpeed = originDestroySpeed + Config.miningSpeedCheatCap;
 
         if(!player.hasCorrectToolForDrops(originBlockState) || originDestroySpeed <= 0.1){
             return;
         }
 
-        Iterator<BlockPos> targetBlockPositions = MiningShapeHelpers.getCandidateBlockPositions(player, origin, MiningShapeEvents::blockMiningPredicate);
+        Iterator<BlockPos> targetBlockPositions = MiningShapeHelpers.getCandidateBlockPositions(
+                player,
+                tool,
+                Minecraft.getInstance().hitResult,
+                origin,
+                MiningShapeEvents::blockMiningPredicate
+        );
         ServerPlayerGameMode gameMode = player.gameMode;
 
         if (!targetBlockPositions.hasNext()) {
@@ -110,7 +134,6 @@ public class MiningShapeEvents {
         }
 
         BlockPos pos;
-        ItemStack tool = player.getMainHandItem();
         playersCurrentlyMining.add(playerId);
 
         int initialDamage = tool.getDamageValue();

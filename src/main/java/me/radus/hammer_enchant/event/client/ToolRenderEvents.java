@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -48,14 +49,21 @@ public class ToolRenderEvents {
             return;
         }
 
-        if (!MiningShapeHelpers.hasMiningShapeModifiers(player)) {
+        ItemStack tool = player.getMainHandItem();
+        if (!MiningShapeHelpers.hasMiningShapeModifiers(tool)) {
             return;
         }
 
 
         BlockHitResult blockTrace = event.getTarget();
         BlockPos origin = blockTrace.getBlockPos();
-        Iterator<BlockPos> breakableBlocks = MiningShapeHelpers.getCandidateBlockPositions(player, origin, MiningShapeEvents::blockMiningPredicate);
+        Iterator<BlockPos> breakableBlocks = MiningShapeHelpers.getCandidateBlockPositions(
+                player,
+                tool,
+                Minecraft.getInstance().hitResult,
+                origin,
+                MiningShapeEvents::blockMiningPredicate
+        );
         if (!breakableBlocks.hasNext()) {
             return;
         }
