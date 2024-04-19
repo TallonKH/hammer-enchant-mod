@@ -6,6 +6,7 @@ import me.radus.hammer_enchant.tag.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -17,16 +18,64 @@ import net.minecraft.client.Minecraft;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiPredicate;
 
 public class MiningShapeHelpers {
-
-
-    public interface NeighborPredicate{
-        public boolean test(Level level, Player player, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState);
+    public interface MiningShapeHandler extends MiningShapeNeighborPredicate{
+        public void perform(Level level, ServerPlayer player, ItemStack tool, Iterator<BlockPos> blocks);
+        boolean testOrigin(Level level, Player player, BlockPos pos);
     }
 
-    public static Iterator<BlockPos> getCandidateBlockPositions(Player player, ItemStack tool, HitResult hitResult, BlockPos origin, NeighborPredicate neighborPredicate) {
+    public interface MiningShapeNeighborPredicate {
+        public boolean testNeighbor(Level level, Player player, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState);
+    }
+
+    public static void handleMiningShapeEvent(
+            Set<UUID> playerTracker,
+            ServerPlayer player,
+            ItemStack tool,
+            BlockPos originPos,
+            HitResult hitResult,
+            MiningShapeHandler handler
+    ){
+        UUID playerUUID = player.getUUID();
+        if(playerTracker.contains(playerUUID)){
+            return;
+        }
+
+        if (!MiningShapeHelpers.hasMiningShapeModifiers(tool)) {
+            return;
+        }
+
+        if(player.getCooldowns().isOnCooldown(tool.getItem())){
+            return;
+        }
+
+        Level level = player.level();
+        if(!handler.testOrigin(level, player, originPos)){
+            return;
+        }
+
+        Iterator<BlockPos> targetBlockPositions = getCandidateBlockPositions(
+                player,
+                tool,
+                hitResult,
+                originPos,
+                handler
+        );
+
+        if (!targetBlockPositions.hasNext()) {
+            return;
+        }
+
+        playerTracker.add(playerUUID);
+        handler.perform(level, player, tool, targetBlockPositions);
+        playerTracker.remove(playerUUID);
+    }
+
+    public static Iterator<BlockPos> getCandidateBlockPositions(Player player, ItemStack tool, HitResult hitResult, BlockPos origin, MiningShapeNeighborPredicate neighborPredicate) {
         Level level = player.level();
         BlockState originBlockState = level.getBlockState(origin);
 
@@ -36,7 +85,7 @@ public class MiningShapeHelpers {
                 return false;
             }
 
-            return neighborPredicate.test(level, player, origin, originBlockState, blockPos, blockState);
+            return neighborPredicate.testNeighbor(level, player, origin, originBlockState, blockPos, blockState);
         });
     }
 

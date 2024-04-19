@@ -62,7 +62,7 @@ public class ToolRenderEvents {
                 tool,
                 Minecraft.getInstance().hitResult,
                 origin,
-                MiningShapeEvents::blockMiningPredicate
+                MiningShapeEvents.MiningHandler.INSTANCE
         );
         if (!breakableBlocks.hasNext()) {
             return;
