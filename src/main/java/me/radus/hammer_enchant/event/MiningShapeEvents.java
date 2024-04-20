@@ -10,7 +10,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.HoeItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -29,56 +31,56 @@ import static me.radus.hammer_enchant.util.MiningShapeHelpers.handleMiningShapeE
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class MiningShapeEvents {
-    private static final Set<UUID> playersCurrentlyMining = new HashSet<>();
-    private static final Set<UUID> playersCurrentlyTilling = new HashSet<>();
-
     public static boolean canTill(Level level, BlockPos blockPos){
         return level.getBlockState(blockPos).is(ModTags.Blocks.TILLABLE_BLOCK_TAG) && level.getBlockState(blockPos.above()).isAir();
     }
 
-    public static boolean blockMiningPredicate(Level level, Player player, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState){
-        return player.hasCorrectToolForDrops(neighborBlockState) && neighborBlockState.getDestroySpeed(level, neighborPos) <= neighborBlockState.getDestroySpeed(level, originPos) + Config.MINING_SPEED_CHEAT_CAP.get();
-    }
-
     public static class TillingHandler implements MiningShapeHelpers.MiningShapeHandler {
-        public static TillingHandler INSTANCE = new TillingHandler();
+        private static final Set<UUID> playerTracker = new HashSet<>();
+        public static final TillingHandler INSTANCE = new TillingHandler();
         @Override
-        public void perform(Level level, ServerPlayer player, ItemStack tool, Iterator<BlockPos> blocks) {
+        public void perform(Level level, ServerPlayer player, ItemStack tool, List<BlockPos> blocks) {
             int blocksConverted = 0;
-            do {
-                BlockPos pos = blocks.next();
-                level.setBlock(pos, Blocks.FARMLAND.defaultBlockState(), Block.UPDATE_ALL_IMMEDIATE);
+
+            for(BlockPos block : blocks){
+                level.setBlock(block, Blocks.FARMLAND.defaultBlockState(), Block.UPDATE_ALL_IMMEDIATE);
                 blocksConverted++;
-            } while (blocks.hasNext());
+            }
 
             int damagePenalty = Config.durabilityMode.calculate(blocksConverted);
             player.getMainHandItem().hurtAndBreak(damagePenalty, player, (a) -> {});
         }
 
         @Override
-        public boolean testNeighbor(Level level, Player player, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState) {
+        public boolean testNeighbor(Level level, Player player, ItemStack tool, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState) {
             return canTill(level, neighborPos);
         }
 
         @Override
-        public boolean testOrigin(Level level, Player player, BlockPos pos) {
+        public boolean testOrigin(Level level, Player player, ItemStack tool, BlockPos pos) {
             return canTill(level, pos);
+        }
+
+        @Override
+        public Set<UUID> playerTracker() {
+            return playerTracker;
         }
     }
 
     public static class MiningHandler implements MiningShapeHelpers.MiningShapeHandler {
-        public static MiningHandler INSTANCE = new MiningHandler();
+        private static final Set<UUID> playerTracker = new HashSet<>();
+        public static final MiningHandler INSTANCE = new MiningHandler();
 
         @Override
-        public void perform(Level level, ServerPlayer player, ItemStack tool, Iterator<BlockPos> blocks) {
+        public void perform(Level level, ServerPlayer player, ItemStack tool, List<BlockPos> blocks) {
             // The damage calculation might decrease how much damage the tool takes.
             // As a precaution, temporarily set the tool to undamaged such that it doesn't break prematurely.
             int initialDamage = tool.getDamageValue();
             tool.setDamageValue(0);
 
-            do {
-                player.gameMode.destroyBlock(blocks.next());
-            } while (blocks.hasNext());
+            for(BlockPos block : blocks) {
+                player.gameMode.destroyBlock(block);
+            }
 
             int rawDamageTaken = tool.getDamageValue();
             int damagePenalty = Config.durabilityMode.calculate(rawDamageTaken);
@@ -87,16 +89,44 @@ public class MiningShapeEvents {
         }
 
         @Override
-        public boolean testNeighbor(Level level, Player player, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState) {
-            return blockMiningPredicate(level, player, originPos, originBlockState, neighborPos, neighborBlockState);
+        public boolean testNeighbor(Level level, Player player, ItemStack tool, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState) {
+            float originDestroySpeed = originBlockState.getDestroySpeed(level, originPos);
+            float neighborDestroySpeed = neighborBlockState.getDestroySpeed(level, neighborPos);
+
+            if(tool.getItem() instanceof HoeItem){
+                // Allow hoe to mine any instamineable block.
+                return tool.isCorrectToolForDrops(neighborBlockState) || neighborDestroySpeed <= Config.INSTAMINE_THRESHOLD.get();
+            } else {
+                if(!tool.isCorrectToolForDrops(neighborBlockState)){
+                    return false;
+                }
+                if(originDestroySpeed <= Config.INSTAMINE_THRESHOLD.get()){
+                    // If origin is instamined, only mine other instamineable blocks.
+                    return neighborDestroySpeed <= Config.INSTAMINE_THRESHOLD.get();
+                } else {
+                    // If origin is not instamined, only mine blocks with destroy speed within cheat limit.
+                    return neighborDestroySpeed <= originDestroySpeed + Config.MINING_SPEED_CHEAT_CAP.get();
+                }
+            }
         }
 
         @Override
-        public boolean testOrigin(Level level, Player player, BlockPos pos) {
+        public boolean testOrigin(Level level, Player player, ItemStack tool, BlockPos pos) {
             BlockState originBlockState = level.getBlockState(pos);
-            float originDestroySpeed = originBlockState.getDestroySpeed(level, pos);
 
-            return player.hasCorrectToolForDrops(originBlockState) && originDestroySpeed >= 0.1;
+            Item toolItem = tool.getItem();
+
+            if(toolItem instanceof HoeItem){
+                // Allow hoe to mine any instamineable block.
+                return toolItem.isCorrectToolForDrops(originBlockState) || originBlockState.getDestroySpeed(level, pos) <= Config.INSTAMINE_THRESHOLD.get();
+            } else {
+                return toolItem.isCorrectToolForDrops(originBlockState);
+            }
+        }
+
+        @Override
+        public Set<UUID> playerTracker() {
+            return playerTracker;
         }
     }
 
@@ -114,14 +144,15 @@ public class MiningShapeEvents {
             }
 
             if (tool.getItem() instanceof HoeItem) {
-                handleMiningShapeEvent(
-                        playersCurrentlyTilling,
+                if(handleMiningShapeEvent(
                         player,
                         tool,
                         rightClickBlockEvent.getPos(),
                         rightClickBlockEvent.getHitVec(),
                         TillingHandler.INSTANCE
-                );
+                )){
+                    rightClickBlockEvent.setCanceled(true);
+                }
             }
         }
     }
@@ -132,13 +163,15 @@ public class MiningShapeEvents {
             return;
         }
 
-        handleMiningShapeEvent(
-                playersCurrentlyMining,
+        if(handleMiningShapeEvent(
                 player,
                 player.getMainHandItem(),
                 event.getPos(),
-                Minecraft.getInstance().hitResult,
+                // Server-side raycast. For client, use Minecraft.instance.hitResult.
+                event.getPlayer().pick(event.getPlayer().getBlockReach(), 0F, false),
                 MiningHandler.INSTANCE
-        );
+        )){
+            event.setCanceled(true);
+        }
     }
 }
