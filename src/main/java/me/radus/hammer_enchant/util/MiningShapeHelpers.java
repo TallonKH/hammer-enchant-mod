@@ -4,12 +4,10 @@ import me.radus.hammer_enchant.ModEnchantments;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -20,6 +18,7 @@ import java.util.*;
 
 public class MiningShapeHelpers {
     public interface MiningShapeHandler extends MiningShapeNeighborPredicate{
+        boolean shouldTryHandler(Player player, ItemStack tool);
         public void perform(Level level, ServerPlayer player, ItemStack tool, List<BlockPos> blocks);
         boolean testOrigin(Level level, Player player, ItemStack tool, BlockPos pos);
         Set<UUID> playerTracker();

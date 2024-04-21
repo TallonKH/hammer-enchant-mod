@@ -3,27 +3,20 @@ package me.radus.hammer_enchant.event;
 import me.radus.hammer_enchant.Config;
 import me.radus.hammer_enchant.tag.ModTags;
 import me.radus.hammer_enchant.util.MiningShapeHelpers;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.*;
 
@@ -38,6 +31,12 @@ public class MiningShapeEvents {
     public static class TillingHandler implements MiningShapeHelpers.MiningShapeHandler {
         private static final Set<UUID> playerTracker = new HashSet<>();
         public static final TillingHandler INSTANCE = new TillingHandler();
+
+        @Override
+        public boolean shouldTryHandler(Player player, ItemStack tool) {
+            return tool.getItem() instanceof HoeItem;
+        }
+
         @Override
         public void perform(Level level, ServerPlayer player, ItemStack tool, List<BlockPos> blocks) {
             int blocksConverted = 0;
@@ -70,6 +69,11 @@ public class MiningShapeEvents {
     public static class MiningHandler implements MiningShapeHelpers.MiningShapeHandler {
         private static final Set<UUID> playerTracker = new HashSet<>();
         public static final MiningHandler INSTANCE = new MiningHandler();
+
+        @Override
+        public boolean shouldTryHandler(Player player, ItemStack tool) {
+            return true;
+        }
 
         @Override
         public void perform(Level level, ServerPlayer player, ItemStack tool, List<BlockPos> blocks) {
@@ -143,7 +147,7 @@ public class MiningShapeEvents {
                 return;
             }
 
-            if (tool.getItem() instanceof HoeItem) {
+            if (TillingHandler.INSTANCE.shouldTryHandler(player,tool)) {
                 if(handleMiningShapeEvent(
                         player,
                         tool,

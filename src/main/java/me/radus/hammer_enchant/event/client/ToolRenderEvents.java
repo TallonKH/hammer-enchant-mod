@@ -2,7 +2,6 @@ package me.radus.hammer_enchant.event.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import me.radus.hammer_enchant.Config;
 import me.radus.hammer_enchant.HammerEnchantMod;
 import me.radus.hammer_enchant.event.MiningShapeEvents;
 import me.radus.hammer_enchant.util.MiningShapeHelpers;
@@ -14,9 +13,9 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -36,6 +35,24 @@ public class ToolRenderEvents {
      */
     private static final int MAX_BLOCKS = 60;
 
+    private enum ToolMode {
+        None(null, 0F, 0F, 0F),
+        Mine(MiningShapeEvents.MiningHandler.INSTANCE, 1F, 0.4F, 0.4F),
+        Till(MiningShapeEvents.TillingHandler.INSTANCE, 0.8F, 1F, 0F);
+
+        final float r, g, b;
+        final MiningShapeHelpers.MiningShapeHandler handler;
+
+        ToolMode(MiningShapeHelpers.MiningShapeHandler handler, float r, float g, float b) {
+            this.handler = handler;
+            this.r=r;
+            this.g=g;
+            this.b=b;
+        }
+    }
+
+    private static final ToolMode[] MODE_ATTEMPT_ORDER = new ToolMode[]{ToolMode.Till, ToolMode.Mine};
+
     /**
      * Renders the outline on the extra blocks
      *
@@ -54,16 +71,32 @@ public class ToolRenderEvents {
             return;
         }
 
-
         BlockHitResult blockTrace = event.getTarget();
         BlockPos origin = blockTrace.getBlockPos();
+
+        ToolMode activeMode = ToolMode.None;
+
+        // Find the active tool mode.
+        for(ToolMode candidateMode : MODE_ATTEMPT_ORDER){
+            if(candidateMode.handler.shouldTryHandler(player, tool) && candidateMode.handler.testOrigin(level, player, tool, origin)){
+               activeMode = candidateMode;
+               break;
+            }
+        }
+
+        // If no tool mode qualifies, do nothing.
+        if(activeMode == ToolMode.None){
+            return;
+        }
+
         Iterator<BlockPos> breakableBlocks = MiningShapeHelpers.getCandidateBlockPositions(
                 player,
                 tool,
                 Minecraft.getInstance().hitResult,
                 origin,
-                MiningShapeEvents.MiningHandler.INSTANCE
+                activeMode.handler
         );
+
         if (!breakableBlocks.hasNext()) {
             return;
         }
@@ -91,7 +124,7 @@ public class ToolRenderEvents {
 
             if (level.getWorldBorder().isWithinBounds(pos)) {
                 rendered++;
-                highlightBlock(pos, matrices, level, camX, camY, camZ, buffers, 0.0f, 1.0f, 0.0f, 0.0f);
+                highlightBlock(pos, matrices, level, camX, camY, camZ, buffers, 0.0f, activeMode.r, activeMode.g, activeMode.b);
             }
         } while (rendered < MAX_BLOCKS && breakableBlocks.hasNext());
 
