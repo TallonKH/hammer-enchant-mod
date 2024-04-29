@@ -1,6 +1,8 @@
 package me.radus.hammer_enchant.event;
 
+import com.google.common.eventbus.Subscribe;
 import me.radus.hammer_enchant.Config;
+import me.radus.hammer_enchant.HammerEnchantMod;
 import me.radus.hammer_enchant.tag.ModTags;
 import me.radus.hammer_enchant.util.MiningShapeHelpers;
 import net.minecraft.core.BlockPos;
@@ -13,6 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -178,5 +181,52 @@ public class MiningShapeEvents {
         )) {
             event.setCanceled(true);
         }
+    }
+
+    // Vanilla mining speed is calculated as:
+    // playerDigSpeed / blockDestroySpeed / (isCorrectToolForDrops ? 30 : 100);
+    @SubscribeEvent
+    public static void onBlockBreakStart(PlayerEvent.BreakSpeed event) {
+        if (event.getPosition().isEmpty()) {
+            return;
+        }
+
+        Player player = event.getEntity();
+        BlockPos breakPos = event.getPosition().get();
+
+        ItemStack tool = player.getMainHandItem();
+        if (!MiningShapeHelpers.hasMiningShapeModifiers(tool)) {
+            return;
+        }
+
+        Level level = player.level();
+        Iterator<BlockPos> blockPosIter = MiningShapeHelpers.getCandidateBlockPositions(
+                player,
+                tool,
+                player.pick(player.getBlockReach(), 0F, false),
+                breakPos,
+                MiningHandler.INSTANCE
+        );
+
+        float minDestroySpeed = Float.MAX_VALUE;
+        float maxDestroySpeed = Float.MIN_VALUE;
+        float speedSum = 0.0f;
+
+        while (blockPosIter.hasNext()) {
+            BlockPos blockPos = blockPosIter.next();
+            BlockState blockState = level.getBlockState(blockPos);
+            float destroySpeed = blockState.getDestroySpeed(level, blockPos);
+
+            minDestroySpeed = Math.min(minDestroySpeed, destroySpeed);
+            maxDestroySpeed = Math.max(maxDestroySpeed, destroySpeed);
+
+            // Origin block break speed has already been accounted for by vanilla code
+            if (!blockPos.equals(breakPos)) {
+                speedSum += destroySpeed;
+            }
+        }
+
+        // TODO: add different modes for configuring break speed
+        event.setNewSpeed(event.getOriginalSpeed() / speedSum);
     }
 }
