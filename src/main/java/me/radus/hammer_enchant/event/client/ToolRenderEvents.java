@@ -45,9 +45,9 @@ public class ToolRenderEvents {
 
         ToolMode(MiningShapeHelpers.MiningShapeHandler handler, float r, float g, float b) {
             this.handler = handler;
-            this.r=r;
-            this.g=g;
-            this.b=b;
+            this.r = r;
+            this.g = g;
+            this.b = b;
         }
     }
 
@@ -77,15 +77,15 @@ public class ToolRenderEvents {
         ToolMode activeMode = ToolMode.None;
 
         // Find the active tool mode.
-        for(ToolMode candidateMode : MODE_ATTEMPT_ORDER){
-            if(candidateMode.handler.shouldTryHandler(player, tool) && candidateMode.handler.testOrigin(level, player, tool, origin)){
-               activeMode = candidateMode;
-               break;
+        for (ToolMode candidateMode : MODE_ATTEMPT_ORDER) {
+            if (candidateMode.handler.shouldTryHandler(player, tool) && candidateMode.handler.testOrigin(level, player, tool, origin)) {
+                activeMode = candidateMode;
+                break;
             }
         }
 
         // If no tool mode qualifies, do nothing.
-        if(activeMode == ToolMode.None){
+        if (activeMode == ToolMode.None) {
             return;
         }
 

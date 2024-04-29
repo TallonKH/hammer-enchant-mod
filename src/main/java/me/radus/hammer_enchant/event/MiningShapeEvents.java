@@ -24,7 +24,7 @@ import static me.radus.hammer_enchant.util.MiningShapeHelpers.handleMiningShapeE
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class MiningShapeEvents {
-    public static boolean canTill(Level level, BlockPos blockPos){
+    public static boolean canTill(Level level, BlockPos blockPos) {
         return level.getBlockState(blockPos).is(ModTags.Blocks.TILLABLE_BLOCK_TAG) && level.getBlockState(blockPos.above()).isAir();
     }
 
@@ -41,13 +41,14 @@ public class MiningShapeEvents {
         public void perform(Level level, ServerPlayer player, ItemStack tool, List<BlockPos> blocks) {
             int blocksConverted = 0;
 
-            for(BlockPos block : blocks){
+            for (BlockPos block : blocks) {
                 level.setBlock(block, Blocks.FARMLAND.defaultBlockState(), Block.UPDATE_ALL_IMMEDIATE);
                 blocksConverted++;
             }
 
             int damagePenalty = Config.durabilityMode.calculate(blocksConverted);
-            player.getMainHandItem().hurtAndBreak(damagePenalty, player, (a) -> {});
+            player.getMainHandItem().hurtAndBreak(damagePenalty, player, (a) -> {
+            });
         }
 
         @Override
@@ -82,7 +83,7 @@ public class MiningShapeEvents {
             int initialDamage = tool.getDamageValue();
             tool.setDamageValue(0);
 
-            for(BlockPos block : blocks) {
+            for (BlockPos block : blocks) {
                 player.gameMode.destroyBlock(block);
             }
 
@@ -97,14 +98,14 @@ public class MiningShapeEvents {
             float originDestroySpeed = originBlockState.getDestroySpeed(level, originPos);
             float neighborDestroySpeed = neighborBlockState.getDestroySpeed(level, neighborPos);
 
-            if(tool.getItem() instanceof HoeItem){
+            if (tool.getItem() instanceof HoeItem) {
                 // Allow hoe to mine any instamineable block.
                 return tool.isCorrectToolForDrops(neighborBlockState) || neighborDestroySpeed <= Config.INSTAMINE_THRESHOLD.get();
             } else {
-                if(!tool.isCorrectToolForDrops(neighborBlockState)){
+                if (!tool.isCorrectToolForDrops(neighborBlockState)) {
                     return false;
                 }
-                if(originDestroySpeed <= Config.INSTAMINE_THRESHOLD.get()){
+                if (originDestroySpeed <= Config.INSTAMINE_THRESHOLD.get()) {
                     // If origin is instamined, only mine other instamineable blocks.
                     return neighborDestroySpeed <= Config.INSTAMINE_THRESHOLD.get();
                 } else {
@@ -120,7 +121,7 @@ public class MiningShapeEvents {
 
             Item toolItem = tool.getItem();
 
-            if(toolItem instanceof HoeItem){
+            if (toolItem instanceof HoeItem) {
                 // Allow hoe to mine any instamineable block.
                 return toolItem.isCorrectToolForDrops(originBlockState) || originBlockState.getDestroySpeed(level, pos) <= Config.INSTAMINE_THRESHOLD.get();
             } else {
@@ -140,21 +141,21 @@ public class MiningShapeEvents {
             return;
         }
 
-        if(someEvent instanceof PlayerInteractEvent.RightClickBlock rightClickBlockEvent) {
+        if (someEvent instanceof PlayerInteractEvent.RightClickBlock rightClickBlockEvent) {
             ItemStack tool = rightClickBlockEvent.getItemStack();
 
-            if(player.getCooldowns().isOnCooldown(tool.getItem())){
+            if (player.getCooldowns().isOnCooldown(tool.getItem())) {
                 return;
             }
 
-            if (TillingHandler.INSTANCE.shouldTryHandler(player,tool)) {
-                if(handleMiningShapeEvent(
+            if (TillingHandler.INSTANCE.shouldTryHandler(player, tool)) {
+                if (handleMiningShapeEvent(
                         player,
                         tool,
                         rightClickBlockEvent.getPos(),
                         rightClickBlockEvent.getHitVec(),
                         TillingHandler.INSTANCE
-                )){
+                )) {
                     rightClickBlockEvent.setCanceled(true);
                 }
             }
@@ -167,14 +168,14 @@ public class MiningShapeEvents {
             return;
         }
 
-        if(handleMiningShapeEvent(
+        if (handleMiningShapeEvent(
                 player,
                 player.getMainHandItem(),
                 event.getPos(),
                 // Server-side raycast. For client, use Minecraft.instance.hitResult.
                 event.getPlayer().pick(event.getPlayer().getBlockReach(), 0F, false),
                 MiningHandler.INSTANCE
-        )){
+        )) {
             event.setCanceled(true);
         }
     }

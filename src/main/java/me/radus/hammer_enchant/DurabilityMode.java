@@ -4,8 +4,8 @@ public enum DurabilityMode {
     NORMAL,
     SQRT;
 
-    static DurabilityMode fromString(String str){
-        switch(str.toUpperCase()){
+    static DurabilityMode fromString(String str) {
+        switch (str.toUpperCase()) {
             case "SQRT" -> {
                 return SQRT;
             }
@@ -15,8 +15,8 @@ public enum DurabilityMode {
         }
     }
 
-    public int calculate(int rawDamage){
-        switch(this){
+    public int calculate(int rawDamage) {
+        switch (this) {
             case SQRT -> {
                 return (int) Math.ceil(Math.sqrt(rawDamage));
             }
