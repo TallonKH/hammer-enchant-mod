@@ -1,8 +1,6 @@
 package me.radus.hammer_enchant.event;
 
-import com.google.common.eventbus.Subscribe;
-import me.radus.hammer_enchant.Config;
-import me.radus.hammer_enchant.HammerEnchantMod;
+import me.radus.hammer_enchant.ModConfig;
 import me.radus.hammer_enchant.tag.ModTags;
 import me.radus.hammer_enchant.util.MiningShapeHelpers;
 import net.minecraft.core.BlockPos;
@@ -49,7 +47,7 @@ public class MiningShapeEvents {
                 blocksConverted++;
             }
 
-            int damagePenalty = Config.durabilityMode.calculate(blocksConverted);
+            int damagePenalty = ModConfig.DURABILITY_MODE.get().calculate(blocksConverted);
             player.getMainHandItem().hurtAndBreak(damagePenalty, player, (a) -> {
             });
         }
@@ -91,7 +89,7 @@ public class MiningShapeEvents {
             }
 
             int rawDamageTaken = tool.getDamageValue();
-            int damagePenalty = Config.durabilityMode.calculate(rawDamageTaken);
+            int damagePenalty = ModConfig.DURABILITY_MODE.get().calculate(rawDamageTaken);
 
             tool.setDamageValue(initialDamage + damagePenalty);
         }
@@ -103,17 +101,17 @@ public class MiningShapeEvents {
 
             if (tool.getItem() instanceof HoeItem) {
                 // Allow hoe to mine any instamineable block.
-                return tool.isCorrectToolForDrops(neighborBlockState) || neighborDestroySpeed <= Config.INSTAMINE_THRESHOLD.get();
+                return tool.isCorrectToolForDrops(neighborBlockState) || neighborDestroySpeed <= ModConfig.INSTAMINE_THRESHOLD.get();
             } else {
                 if (!tool.isCorrectToolForDrops(neighborBlockState)) {
                     return false;
                 }
-                if (originDestroySpeed <= Config.INSTAMINE_THRESHOLD.get()) {
+                if (originDestroySpeed <= ModConfig.INSTAMINE_THRESHOLD.get()) {
                     // If origin is instamined, only mine other instamineable blocks.
-                    return neighborDestroySpeed <= Config.INSTAMINE_THRESHOLD.get();
+                    return neighborDestroySpeed <= ModConfig.INSTAMINE_THRESHOLD.get();
                 } else {
                     // If origin is not instamined, only mine blocks with destroy speed within cheat limit.
-                    return neighborDestroySpeed <= originDestroySpeed + Config.MINING_SPEED_CHEAT_CAP.get();
+                    return neighborDestroySpeed <= originDestroySpeed + ModConfig.MINING_SPEED_CHEAT_CAP.get();
                 }
             }
         }
@@ -126,7 +124,7 @@ public class MiningShapeEvents {
 
             if (toolItem instanceof HoeItem) {
                 // Allow hoe to mine any instamineable block.
-                return toolItem.isCorrectToolForDrops(originBlockState) || originBlockState.getDestroySpeed(level, pos) <= Config.INSTAMINE_THRESHOLD.get();
+                return toolItem.isCorrectToolForDrops(originBlockState) || originBlockState.getDestroySpeed(level, pos) <= ModConfig.INSTAMINE_THRESHOLD.get();
             } else {
                 return toolItem.isCorrectToolForDrops(originBlockState);
             }
@@ -208,7 +206,6 @@ public class MiningShapeEvents {
                 MiningHandler.INSTANCE
         );
 
-        float minDestroySpeed = Float.MAX_VALUE;
         float maxDestroySpeed = Float.MIN_VALUE;
         float speedSum = 0.0f;
 
@@ -217,7 +214,6 @@ public class MiningShapeEvents {
             BlockState blockState = level.getBlockState(blockPos);
             float destroySpeed = blockState.getDestroySpeed(level, blockPos);
 
-            minDestroySpeed = Math.min(minDestroySpeed, destroySpeed);
             maxDestroySpeed = Math.max(maxDestroySpeed, destroySpeed);
 
             // Origin block break speed has already been accounted for by vanilla code
@@ -226,7 +222,9 @@ public class MiningShapeEvents {
             }
         }
 
-        // TODO: add different modes for configuring break speed
-        event.setNewSpeed(event.getOriginalSpeed() / speedSum);
+        switch (ModConfig.MINING_SPEED_MODE.get()) {
+            case MAX -> event.setNewSpeed(event.getOriginalSpeed() / maxDestroySpeed);
+            case SUM -> event.setNewSpeed(event.getOriginalSpeed() / speedSum);
+        }
     }
 }
