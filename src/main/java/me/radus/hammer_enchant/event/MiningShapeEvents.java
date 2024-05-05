@@ -181,8 +181,13 @@ public class MiningShapeEvents {
         }
     }
 
-    // Vanilla mining speed is calculated as:
-    // playerDigSpeed / blockDestroySpeed / (isCorrectToolForDrops ? 30 : 100);
+    // Mining speed (s) is basically everything *but* block hardness (h).
+    // Let (t) be time to break.
+    //  normally: t=h/s
+    //  we want: t' = f(h1,h2,...)/s
+    //  we can only change (s), so we do: t' = h/s'
+    //      f(h1,h2,...})/s = h/s'
+    //      s' = s*h / f(h1,h2,...)
     @SubscribeEvent
     public static void onBlockBreakStart(PlayerEvent.BreakSpeed event) {
         if (event.getPosition().isEmpty()) {
@@ -206,25 +211,18 @@ public class MiningShapeEvents {
                 MiningHandler.INSTANCE
         );
 
-        float maxDestroySpeed = Float.MIN_VALUE;
-        float speedSum = 0.0f;
-
-        while (blockPosIter.hasNext()) {
-            BlockPos blockPos = blockPosIter.next();
-            BlockState blockState = level.getBlockState(blockPos);
-            float destroySpeed = blockState.getDestroySpeed(level, blockPos);
-
-            maxDestroySpeed = Math.max(maxDestroySpeed, destroySpeed);
-
-            // Origin block break speed has already been accounted for by vanilla code
-            if (!blockPos.equals(breakPos)) {
-                speedSum += destroySpeed;
+        List<Float> allDestroyTimes = new ArrayList<>();
+        if(blockPosIter.hasNext()){
+            while (blockPosIter.hasNext()) {
+                BlockPos blockPos = blockPosIter.next();
+                BlockState blockState = level.getBlockState(blockPos);
+                allDestroyTimes.add(blockState.getBlock().defaultDestroyTime());
             }
-        }
 
-        switch (ModConfig.MINING_SPEED_MODE.get()) {
-            case MAX -> event.setNewSpeed(event.getOriginalSpeed() / maxDestroySpeed);
-            case SUM -> event.setNewSpeed(event.getOriginalSpeed() / speedSum);
+            float centerDestroyTime = level.getBlockState(breakPos).getBlock().defaultDestroyTime();
+            float totalDestroyTime = ModConfig.MINING_SPEED_MODE.get().computeDestroyTime(centerDestroyTime, allDestroyTimes);
+            float newSpeed = event.getOriginalSpeed() * centerDestroyTime / totalDestroyTime;
+            event.setNewSpeed(newSpeed);
         }
     }
 }
