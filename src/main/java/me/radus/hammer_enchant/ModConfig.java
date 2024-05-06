@@ -16,8 +16,8 @@ public class ModConfig {
             .comment("Durability mode [Default: 'NORMAL']")
             .defineEnum("durabilityMode", DurabilityMode.NORMAL);
     public static final ForgeConfigSpec.EnumValue<MiningSpeedMode> MINING_SPEED_MODE = BUILDER
-            .comment("Mining speed mode [Default: 'MAX']")
-            .defineEnum("miningSpeedMode", MiningSpeedMode.MAX);
+            .comment("Mining speed mode [Default: '%s']".formatted(MiningSpeedMode.DEFAULT))
+            .defineEnum("miningSpeedMode", MiningSpeedMode.DEFAULT);
 
     // TODO: remove
     public static final ForgeConfigSpec.ConfigValue<Float> MINING_SPEED_CHEAT_CAP = BUILDER
