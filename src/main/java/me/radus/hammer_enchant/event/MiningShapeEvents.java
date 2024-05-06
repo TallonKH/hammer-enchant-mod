@@ -46,7 +46,7 @@ public class MiningShapeEvents {
                 blocksConverted++;
             }
 
-            int damagePenalty = Config.durabilityMode.calculate(blocksConverted);
+            int damagePenalty = Config.durabilityMode.computeDamage(blocksConverted);
             player.getMainHandItem().hurtAndBreak(damagePenalty, player, (a) -> {});
         }
 
