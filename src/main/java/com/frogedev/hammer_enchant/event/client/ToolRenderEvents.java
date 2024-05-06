@@ -1,10 +1,10 @@
-package me.radus.hammer_enchant.event.client;
+package com.frogedev.hammer_enchant.event.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import me.radus.hammer_enchant.HammerEnchantMod;
-import me.radus.hammer_enchant.event.MiningShapeEvents;
-import me.radus.hammer_enchant.util.MiningShapeHelpers;
+import com.frogedev.hammer_enchant.HammerEnchantMod;
+import com.frogedev.hammer_enchant.event.MiningShapeEvents;
+import com.frogedev.hammer_enchant.util.MiningShapeHelpers;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -13,7 +13,6 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -45,9 +44,9 @@ public class ToolRenderEvents {
 
         ToolMode(MiningShapeHelpers.MiningShapeHandler handler, float r, float g, float b) {
             this.handler = handler;
-            this.r=r;
-            this.g=g;
-            this.b=b;
+            this.r = r;
+            this.g = g;
+            this.b = b;
         }
     }
 
@@ -77,15 +76,15 @@ public class ToolRenderEvents {
         ToolMode activeMode = ToolMode.None;
 
         // Find the active tool mode.
-        for(ToolMode candidateMode : MODE_ATTEMPT_ORDER){
-            if(candidateMode.handler.shouldTryHandler(player, tool) && candidateMode.handler.testOrigin(level, player, tool, origin)){
-               activeMode = candidateMode;
-               break;
+        for (ToolMode candidateMode : MODE_ATTEMPT_ORDER) {
+            if (candidateMode.handler.shouldTryHandler(player, tool) && candidateMode.handler.testOrigin(level, player, tool, origin)) {
+                activeMode = candidateMode;
+                break;
             }
         }
 
         // If no tool mode qualifies, do nothing.
-        if(activeMode == ToolMode.None){
+        if (activeMode == ToolMode.None) {
             return;
         }
 

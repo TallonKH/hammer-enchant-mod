@@ -1,4 +1,6 @@
-package me.radus.hammer_enchant;
+package com.frogedev.hammer_enchant.config;
+
+import com.frogedev.hammer_enchant.HammerEnchantMod;
 
 public enum DurabilityMode {
     FULL {
@@ -21,10 +23,11 @@ public enum DurabilityMode {
     };
 
     public static final DurabilityMode DEFAULT = SQRT;
-    static DurabilityMode fromString(String str){
+
+    public static DurabilityMode fromString(String str) {
         try {
             return DurabilityMode.valueOf(str);
-        } catch(IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             HammerEnchantMod.LOGGER.warn("Invalid value for config 'DurabilityMode': '{}', assuming default value '{}'", str, DEFAULT);
             return DEFAULT;
         }
