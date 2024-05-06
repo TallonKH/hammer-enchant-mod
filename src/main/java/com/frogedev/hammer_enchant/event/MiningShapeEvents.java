@@ -1,8 +1,8 @@
 package com.frogedev.hammer_enchant.event;
 
 import com.frogedev.hammer_enchant.ModConfig;
-import com.frogedev.hammer_enchant.util.MiningShapeHelpers;
 import com.frogedev.hammer_enchant.tag.ModTags;
+import com.frogedev.hammer_enchant.util.MiningShapeHelpers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -45,7 +45,7 @@ public class MiningShapeEvents {
                 blocksConverted++;
             }
 
-            int damagePenalty = ModConfig.DURABILITY_MODE.get().calculate(blocksConverted);
+            int damagePenalty = ModConfig.DURABILITY_MODE.get().computeDamage(blocksConverted);
             player.getMainHandItem().hurtAndBreak(damagePenalty, player, (a) -> {
             });
         }
@@ -87,9 +87,16 @@ public class MiningShapeEvents {
             }
 
             int rawDamageTaken = tool.getDamageValue();
-            int damagePenalty = ModConfig.DURABILITY_MODE.get().calculate(rawDamageTaken);
+            int damagePenalty = ModConfig.DURABILITY_MODE.get().computeDamage(rawDamageTaken);
 
-            tool.setDamageValue(initialDamage + damagePenalty);
+            int newDamage = initialDamage + damagePenalty;
+            tool.setDamageValue(newDamage);
+
+            // Make sure tool breaks if it's supposed to.
+            if (newDamage >= tool.getMaxDamage()) {
+                tool.hurtAndBreak(0, player, (a) -> {
+                });
+            }
         }
 
         @Override

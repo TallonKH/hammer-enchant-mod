@@ -9,8 +9,8 @@ import net.minecraftforge.fml.common.Mod;
 public class ModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static final ForgeConfigSpec.EnumValue<DurabilityMode> DURABILITY_MODE = BUILDER
-            .comment("Durability mode [Default: 'NORMAL']")
-            .defineEnum("durabilityMode", DurabilityMode.NORMAL);
+            .comment("Durability mode [Default: '%s']".formatted(DurabilityMode.DEFAULT))
+            .defineEnum("durabilityMode", DurabilityMode.DEFAULT);
     public static final ForgeConfigSpec.EnumValue<MiningSpeedMode> MINING_SPEED_MODE = BUILDER
             .comment("Mining speed mode [Default: '%s']".formatted(MiningSpeedMode.DEFAULT))
             .defineEnum("miningSpeedMode", MiningSpeedMode.DEFAULT);
