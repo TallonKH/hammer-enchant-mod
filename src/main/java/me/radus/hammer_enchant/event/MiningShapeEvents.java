@@ -87,9 +87,15 @@ public class MiningShapeEvents {
             }
 
             int rawDamageTaken = tool.getDamageValue();
-            int damagePenalty = Config.durabilityMode.calculate(rawDamageTaken);
+            int damagePenalty = Config.durabilityMode.computeDamage(rawDamageTaken);
 
-            tool.setDamageValue(initialDamage + damagePenalty);
+            int newDamage = initialDamage + damagePenalty;
+            tool.setDamageValue(newDamage);
+            
+            // Make sure tool breaks if it's supposed to.
+            if(newDamage >= tool.getMaxDamage()){
+                tool.hurtAndBreak(0, player, (a) -> {});
+            }
         }
 
         @Override
