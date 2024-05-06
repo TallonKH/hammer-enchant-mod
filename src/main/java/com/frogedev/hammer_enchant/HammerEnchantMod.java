@@ -51,11 +51,9 @@ public class HammerEnchantMod {
 
     private void onModCommonSetup(FMLCommonSetupEvent event) {
         // Some common setup code
-        LOGGER.info("Hello from Hammer Enchants!");
     }
 
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
-        LOGGER.info("Hello from Hammer Enchants! (server)");
     }
 }
