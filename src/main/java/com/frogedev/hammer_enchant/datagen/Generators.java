@@ -1,6 +1,6 @@
-package me.radus.hammer_enchant.datagen;
+package com.frogedev.hammer_enchant.datagen;
 
-import me.radus.hammer_enchant.HammerEnchantMod;
+import com.frogedev.hammer_enchant.HammerEnchantMod;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -11,10 +11,10 @@ import net.minecraftforge.fml.common.Mod;
 
 import java.util.concurrent.CompletableFuture;
 
-@Mod.EventBusSubscriber(modid= HammerEnchantMod.MOD_ID, bus=Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(modid = HammerEnchantMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Generators {
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent event){
+    public static void gatherData(GatherDataEvent event) {
         DataGenerator generator = event.getGenerator();
         PackOutput packOutput = generator.getPackOutput();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();

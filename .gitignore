@@ -27,3 +27,4 @@ forge*changelog.txt
 
 # MacOS garbage
 .DS_Store
+/src/generated

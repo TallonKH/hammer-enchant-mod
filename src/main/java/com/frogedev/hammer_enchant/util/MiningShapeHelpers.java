@@ -1,6 +1,6 @@
-package me.radus.hammer_enchant.util;
+package com.frogedev.hammer_enchant.util;
 
-import me.radus.hammer_enchant.ModEnchantments;
+import com.frogedev.hammer_enchant.ModEnchantments;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -17,15 +17,18 @@ import net.minecraftforge.fluids.IFluidBlock;
 import java.util.*;
 
 public class MiningShapeHelpers {
-    public interface MiningShapeHandler extends MiningShapeNeighborPredicate{
+    public interface MiningShapeHandler extends MiningShapeNeighborPredicate {
         boolean shouldTryHandler(Player player, ItemStack tool);
-        public void perform(Level level, ServerPlayer player, ItemStack tool, List<BlockPos> blocks);
+
+        void perform(Level level, ServerPlayer player, ItemStack tool, List<BlockPos> blocks);
+
         boolean testOrigin(Level level, Player player, ItemStack tool, BlockPos pos);
+
         Set<UUID> playerTracker();
     }
 
     public interface MiningShapeNeighborPredicate {
-        public boolean testNeighbor(Level level, Player player, ItemStack tool, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState);
+        boolean testNeighbor(Level level, Player player, ItemStack tool, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState);
     }
 
     public static boolean handleMiningShapeEvent(
@@ -34,9 +37,9 @@ public class MiningShapeHelpers {
             BlockPos originPos,
             HitResult hitResult,
             MiningShapeHandler handler
-    ){
+    ) {
         UUID playerUUID = player.getUUID();
-        if(handler.playerTracker().contains(playerUUID)){
+        if (handler.playerTracker().contains(playerUUID)) {
             return false;
         }
 
@@ -44,12 +47,12 @@ public class MiningShapeHelpers {
             return false;
         }
 
-        if(player.getCooldowns().isOnCooldown(tool.getItem())){
+        if (player.getCooldowns().isOnCooldown(tool.getItem())) {
             return false;
         }
 
         Level level = player.level();
-        if(!handler.testOrigin(level, player, tool, originPos)){
+        if (!handler.testOrigin(level, player, tool, originPos)) {
             return false;
         }
 
@@ -83,10 +86,10 @@ public class MiningShapeHelpers {
 
         return new FilteredIterator<>(getAllBlockPositions(player, tool, hitResult, origin), blockPos -> {
             BlockState blockState = level.getBlockState(blockPos);
-            if(blockState.isAir() || blockState.getBlock() instanceof LiquidBlock || blockState.getBlock() instanceof IFluidBlock){
+            if (blockState.isAir() || blockState.getBlock() instanceof LiquidBlock || blockState.getBlock() instanceof IFluidBlock) {
                 return false;
             }
-            if(player.isCrouching() && originBlockState.getBlock() != blockState.getBlock()){
+            if (player.isCrouching() && originBlockState.getBlock() != blockState.getBlock()) {
                 return false;
             }
 
@@ -107,7 +110,7 @@ public class MiningShapeHelpers {
         Direction depthDir = blockHitResult.getDirection().getOpposite();
         Direction heightDir;
         Direction widthDir;
-        if (depthDir.getAxis().isVertical()){
+        if (depthDir.getAxis().isVertical()) {
             if (facingEastWest) {
                 heightDir = Direction.EAST;
                 widthDir = Direction.SOUTH;
@@ -140,7 +143,7 @@ public class MiningShapeHelpers {
         int width = 0;
         int height = 0;
 
-        if(surfaceEnchantLevel <= 4){
+        if (surfaceEnchantLevel <= 4) {
             width = (int) Math.ceil(surfaceEnchantLevel / 2.0);
             height = (int) Math.floor(surfaceEnchantLevel / 2.0);
         } else {
@@ -150,7 +153,7 @@ public class MiningShapeHelpers {
 
         return new Vec3i(depthEnchantLevel, height, width);
     }
-    
+
     public static boolean hasMiningShapeModifiers(ItemStack tool) {
         Vec3i size = getMiningSize(tool);
         return size.getX() > 0 || size.getY() > 0 || size.getZ() > 0;

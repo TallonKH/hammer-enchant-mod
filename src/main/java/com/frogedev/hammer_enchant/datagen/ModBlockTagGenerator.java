@@ -1,11 +1,10 @@
-package me.radus.hammer_enchant.datagen;
+package com.frogedev.hammer_enchant.datagen;
 
-import me.radus.hammer_enchant.HammerEnchantMod;
-import me.radus.hammer_enchant.tag.ModTags;
+import com.frogedev.hammer_enchant.HammerEnchantMod;
+import com.frogedev.hammer_enchant.tag.ModTags;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.data.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.Nullable;
