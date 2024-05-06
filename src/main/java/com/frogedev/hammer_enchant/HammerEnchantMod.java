@@ -1,8 +1,8 @@
-package me.radus.hammer_enchant;
+package com.frogedev.hammer_enchant;
 
+import com.frogedev.hammer_enchant.datagen.Generators;
 import com.mojang.logging.LogUtils;
 import com.tterrag.registrate.Registrate;
-import me.radus.hammer_enchant.datagen.Generators;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.common.MinecraftForge;

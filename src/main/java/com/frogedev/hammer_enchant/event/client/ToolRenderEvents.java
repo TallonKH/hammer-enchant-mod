@@ -1,10 +1,10 @@
-package me.radus.hammer_enchant.event.client;
+package com.frogedev.hammer_enchant.event.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import me.radus.hammer_enchant.HammerEnchantMod;
-import me.radus.hammer_enchant.event.MiningShapeEvents;
-import me.radus.hammer_enchant.util.MiningShapeHelpers;
+import com.frogedev.hammer_enchant.HammerEnchantMod;
+import com.frogedev.hammer_enchant.event.MiningShapeEvents;
+import com.frogedev.hammer_enchant.util.MiningShapeHelpers;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;

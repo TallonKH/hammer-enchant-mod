@@ -1,6 +1,6 @@
-package me.radus.hammer_enchant.datagen;
+package com.frogedev.hammer_enchant.datagen;
 
-import me.radus.hammer_enchant.HammerEnchantMod;
+import com.frogedev.hammer_enchant.HammerEnchantMod;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;

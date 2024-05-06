@@ -1,4 +1,4 @@
-package me.radus.hammer_enchant.event;
+package com.frogedev.hammer_enchant.event;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;

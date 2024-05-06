@@ -1,8 +1,8 @@
-package me.radus.hammer_enchant.event;
+package com.frogedev.hammer_enchant.event;
 
-import me.radus.hammer_enchant.ModConfig;
-import me.radus.hammer_enchant.tag.ModTags;
-import me.radus.hammer_enchant.util.MiningShapeHelpers;
+import com.frogedev.hammer_enchant.ModConfig;
+import com.frogedev.hammer_enchant.util.MiningShapeHelpers;
+import com.frogedev.hammer_enchant.tag.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -20,8 +20,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.*;
-
-import static me.radus.hammer_enchant.util.MiningShapeHelpers.handleMiningShapeEvent;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class MiningShapeEvents {
@@ -150,7 +148,7 @@ public class MiningShapeEvents {
             }
 
             if (TillingHandler.INSTANCE.shouldTryHandler(player, tool)) {
-                if (handleMiningShapeEvent(
+                if (MiningShapeHelpers.handleMiningShapeEvent(
                         player,
                         tool,
                         rightClickBlockEvent.getPos(),
@@ -169,7 +167,7 @@ public class MiningShapeEvents {
             return;
         }
 
-        if (handleMiningShapeEvent(
+        if (MiningShapeHelpers.handleMiningShapeEvent(
                 player,
                 player.getMainHandItem(),
                 event.getPos(),

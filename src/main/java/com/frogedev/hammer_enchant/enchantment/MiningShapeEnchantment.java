@@ -1,4 +1,4 @@
-package me.radus.hammer_enchant.enchantment;
+package com.frogedev.hammer_enchant.enchantment;
 
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.enchantment.Enchantment;

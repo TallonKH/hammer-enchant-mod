@@ -1,4 +1,4 @@
-package me.radus.hammer_enchant.util;
+package com.frogedev.hammer_enchant.util;
 
 import com.google.common.collect.AbstractIterator;
 import org.jetbrains.annotations.Nullable;

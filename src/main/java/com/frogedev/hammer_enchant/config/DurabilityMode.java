@@ -1,6 +1,6 @@
-package me.radus.hammer_enchant.config;
+package com.frogedev.hammer_enchant.config;
 
-import me.radus.hammer_enchant.HammerEnchantMod;
+import com.frogedev.hammer_enchant.HammerEnchantMod;
 
 public enum DurabilityMode {
     NORMAL,

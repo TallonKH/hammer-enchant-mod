@@ -1,6 +1,6 @@
-package me.radus.hammer_enchant.tag;
+package com.frogedev.hammer_enchant.tag;
 
-import me.radus.hammer_enchant.HammerEnchantMod;
+import com.frogedev.hammer_enchant.HammerEnchantMod;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;

@@ -1,6 +1,6 @@
-package me.radus.hammer_enchant;
+package com.frogedev.hammer_enchant;
 
-import me.radus.hammer_enchant.enchantment.MiningShapeEnchantment;
+import com.frogedev.hammer_enchant.enchantment.MiningShapeEnchantment;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
