@@ -37,10 +37,11 @@ public enum MiningSpeedMode {
     };
 
     public static final MiningSpeedMode DEFAULT = SQRT_SUM;
+
     public static MiningSpeedMode fromString(String str) {
         try {
             return MiningSpeedMode.valueOf(str.toUpperCase());
-        } catch(IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             HammerEnchantMod.LOGGER.warn("Invalid value for config 'MiningSpeedMode': '{}', assuming default value '{}'", str, DEFAULT);
             return DEFAULT;
         }

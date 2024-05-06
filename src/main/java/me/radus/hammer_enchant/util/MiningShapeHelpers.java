@@ -1,9 +1,6 @@
 package me.radus.hammer_enchant.util;
 
-import me.radus.hammer_enchant.ModConfig;
 import me.radus.hammer_enchant.ModEnchantments;
-import me.radus.hammer_enchant.config.DurabilityMode;
-import me.radus.hammer_enchant.event.client.ToolRenderEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;

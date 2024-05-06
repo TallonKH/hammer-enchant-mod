@@ -212,7 +212,7 @@ public class MiningShapeEvents {
         );
 
         List<Float> allDestroyTimes = new ArrayList<>();
-        if(blockPosIter.hasNext()){
+        if (blockPosIter.hasNext()) {
             while (blockPosIter.hasNext()) {
                 BlockPos blockPos = blockPosIter.next();
                 BlockState blockState = level.getBlockState(blockPos);

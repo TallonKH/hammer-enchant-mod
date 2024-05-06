@@ -3,9 +3,7 @@ package me.radus.hammer_enchant;
 import me.radus.hammer_enchant.config.DurabilityMode;
 import me.radus.hammer_enchant.config.MiningSpeedMode;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
 
 @Mod.EventBusSubscriber(modid = HammerEnchantMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModConfig {
