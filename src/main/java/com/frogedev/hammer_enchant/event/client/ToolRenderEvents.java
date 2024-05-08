@@ -1,29 +1,40 @@
 package com.frogedev.hammer_enchant.event.client;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.frogedev.hammer_enchant.HammerEnchantMod;
 import com.frogedev.hammer_enchant.event.MiningShapeEvents;
 import com.frogedev.hammer_enchant.util.MiningShapeHelpers;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderHighlightEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 
+import java.lang.reflect.Field;
 import java.util.Iterator;
 
 @SuppressWarnings("unused")
@@ -58,7 +69,7 @@ public class ToolRenderEvents {
      * @param event the highlight event
      */
     @SubscribeEvent
-    static void renderBlockHighlights(RenderHighlightEvent.Block event) {
+    public static void renderBlockHighlights(RenderHighlightEvent.Block event) {
         Level level = Minecraft.getInstance().level;
         Player player = Minecraft.getInstance().player;
         if (level == null || player == null) {
@@ -133,25 +144,122 @@ public class ToolRenderEvents {
 
     // From SupportBlockRenderer:highlightPosition
     private static void highlightBlock(BlockPos pos, PoseStack poseStack, Level level, double pCamX, double pCamY, double pCamZ, MultiBufferSource bufferSource, double pBias, float pRed, float pGreen, float pBlue) {
-//        double d0 = (double) pos.getX() - pCamX - 2.0d * pBias;
-//        double d1 = (double) pos.getY() - pCamY - 2.0d * pBias;
-//        double d2 = (double) pos.getZ() - pCamZ - 2.0d * pBias;
-//        double d3 = d0 + 1.0d + 4.0d * pBias;
-//        double d4 = d1 + 1.0d + 4.0d * pBias;
-//        double d5 = d2 + 1.0d + 4.0d * pBias;
         VertexConsumer vertexBuilder = bufferSource.getBuffer(RenderType.lines());
         VoxelShape shape = level
                 .getBlockState(pos)
                 .getShape(level, pos)
                 .move(pos.getX(), pos.getY(), pos.getZ());
 
-//        LevelRenderer.renderLineBox(poseStack, bufferSource.getBuffer(RenderType.lines()), d0, d1, d2, d3, d4, d5, pRed, pGreen, pBlue, 0.4F);
         LevelRenderer.renderVoxelShape(poseStack, vertexBuilder, shape, -pCamX, -pCamY, -pCamZ, pRed, pGreen, pBlue, 1.0F, false);
     }
 
     /**
      * Renders the block damage process on the extra blocks
      */
+
+    // TODO(radu): this is rancid, so much copy paste, very inefficient... pls fix.
+    // use BlockRenderDispatcher::renderBreakingTexture, see LevelRenderer:L1342
+    @SubscribeEvent
+    public static void onRenderLevelStage(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) {
+            return;
+        }
+
+        Player player = Minecraft.getInstance().player;
+        Level level = player.level();
+
+        ItemStack tool = player.getMainHandItem();
+        if (!MiningShapeHelpers.hasMiningShapeModifiers(tool)) {
+            return;
+        }
+
+        if (!(Minecraft.getInstance().hitResult instanceof BlockHitResult blockTrace)) {
+            return;
+        }
+
+        BlockPos origin = blockTrace.getBlockPos();
+        ToolMode activeMode = ToolMode.None;
+
+        // Find the active tool mode.
+        for (ToolMode candidateMode : MODE_ATTEMPT_ORDER) {
+            if (candidateMode.handler.shouldTryHandler(player, tool) && candidateMode.handler.testOrigin(level, player, tool, origin)) {
+                activeMode = candidateMode;
+                break;
+            }
+        }
+
+        // If no tool mode qualifies, do nothing.
+        if (activeMode == ToolMode.None) {
+            return;
+        }
+
+        Iterator<BlockPos> breakableBlocks = MiningShapeHelpers.getCandidateBlockPositions(
+                player,
+                tool,
+                Minecraft.getInstance().hitResult,
+                origin,
+                activeMode.handler
+        );
+
+        // Setting private field to accessible
+        LevelRenderer levelRenderer = Minecraft.getInstance().levelRenderer;
+        Int2ObjectMap<BlockDestructionProgress> destroyingBlocks = null;
+        try {
+            Field destroyingBlocksField = ObfuscationReflectionHelper.findField(levelRenderer.getClass(), "destroyingBlocks");
+            destroyingBlocksField.setAccessible(true);
+            destroyingBlocks = (Int2ObjectMap<BlockDestructionProgress>) destroyingBlocksField.get(levelRenderer);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        if (destroyingBlocks == null) {
+            return;
+        }
+
+        BlockDestructionProgress destroyProgress = null;
+        for (Int2ObjectMap.Entry<BlockDestructionProgress> entry : destroyingBlocks.int2ObjectEntrySet()) {
+            if (entry.getValue().getPos().equals(origin)) {
+                destroyProgress = entry.getValue();
+                break;
+            }
+        }
+        if (destroyProgress == null) {
+            return;
+        }
+
+        BlockRenderDispatcher blockRenderer = Minecraft.getInstance().getBlockRenderer();
+        PoseStack matrices = event.getPoseStack();
+        PoseStack poseStack = event.getPoseStack();
+        RenderBuffers renderBuffers = Minecraft.getInstance().renderBuffers();
+        MultiBufferSource.BufferSource breakBufferSource = renderBuffers.crumblingBufferSource();
+        RenderType destroyRenderType = ModelBakery.DESTROY_TYPES.get(destroyProgress.getProgress());
+
+        // Translate back to origin
+        Camera camera = event.getCamera();
+        double x = camera.getPosition().x;
+        double y = camera.getPosition().y;
+        double z = camera.getPosition().z;
+        poseStack.pushPose();
+        poseStack.translate(-x, -y, -z);
+
+        while (breakableBlocks.hasNext()) {
+            BlockPos blockPos = breakableBlocks.next();
+            BlockState blockState = level.getBlockState(blockPos);
+
+            poseStack.pushPose();
+            poseStack.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+            PoseStack.Pose lastPose = poseStack.last();
+
+            VertexConsumer vertexConsumer = new SheetedDecalTextureGenerator(breakBufferSource.getBuffer(destroyRenderType), lastPose.pose(), lastPose.normal(), 1.0F);
+            blockRenderer.renderBreakingTexture(blockState, blockPos, level, poseStack, vertexConsumer, ModelData.EMPTY);
+
+            poseStack.popPose();
+        }
+
+        poseStack.popPose();
+    }
+
     /*
     @SubscribeEvent
     static void renderBlockDamageProgress(RenderLevelStageEvent event) {
