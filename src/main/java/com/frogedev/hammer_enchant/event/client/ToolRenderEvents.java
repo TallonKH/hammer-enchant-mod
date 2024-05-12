@@ -1,10 +1,11 @@
 package com.frogedev.hammer_enchant.event.client;
 
+import com.frogedev.hammer_enchant.HammerEnchantMod;
+import com.frogedev.hammer_enchant.core.HammerActions;
+import com.frogedev.hammer_enchant.core.IHammerAction;
+import com.frogedev.hammer_enchant.core.MiningShapeHelpers;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.frogedev.hammer_enchant.HammerEnchantMod;
-import com.frogedev.hammer_enchant.event.MiningShapeEvents;
-import com.frogedev.hammer_enchant.util.MiningShapeHelpers;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -34,24 +35,6 @@ public class ToolRenderEvents {
      */
     private static final int MAX_BLOCKS = 60;
 
-    private enum ToolMode {
-        None(null, 0F, 0F, 0F),
-        Mine(MiningShapeEvents.MiningHandler.INSTANCE, 1F, 0.4F, 0.4F),
-        Till(MiningShapeEvents.TillingHandler.INSTANCE, 0.8F, 1F, 0F);
-
-        final float r, g, b;
-        final MiningShapeHelpers.MiningShapeHandler handler;
-
-        ToolMode(MiningShapeHelpers.MiningShapeHandler handler, float r, float g, float b) {
-            this.handler = handler;
-            this.r = r;
-            this.g = g;
-            this.b = b;
-        }
-    }
-
-    private static final ToolMode[] MODE_ATTEMPT_ORDER = new ToolMode[]{ToolMode.Till, ToolMode.Mine};
-
     /**
      * Renders the outline on the extra blocks
      *
@@ -73,18 +56,8 @@ public class ToolRenderEvents {
         BlockHitResult blockTrace = event.getTarget();
         BlockPos origin = blockTrace.getBlockPos();
 
-        ToolMode activeMode = ToolMode.None;
-
-        // Find the active tool mode.
-        for (ToolMode candidateMode : MODE_ATTEMPT_ORDER) {
-            if (candidateMode.handler.shouldTryHandler(player, tool) && candidateMode.handler.testOrigin(level, player, tool, origin)) {
-                activeMode = candidateMode;
-                break;
-            }
-        }
-
-        // If no tool mode qualifies, do nothing.
-        if (activeMode == ToolMode.None) {
+        IHammerAction action = HammerActions.getHammerAction(player, tool);
+        if (action == null) {
             return;
         }
 
@@ -93,7 +66,7 @@ public class ToolRenderEvents {
                 tool,
                 Minecraft.getInstance().hitResult,
                 origin,
-                activeMode.handler
+                action
         );
 
         if (!breakableBlocks.hasNext()) {
@@ -117,13 +90,17 @@ public class ToolRenderEvents {
         int rendered = 0;
 
         CollisionContext collisionContext = CollisionContext.of(viewEntity);
+        final Vec3 highlightColor = action.getHighlightColor();
+        final float colorR = (float) highlightColor.x;
+        final float colorG = (float) highlightColor.y;
+        final float colorB = (float) highlightColor.z;
 
         do {
             BlockPos pos = breakableBlocks.next();
 
             if (level.getWorldBorder().isWithinBounds(pos)) {
                 rendered++;
-                highlightBlock(pos, matrices, level, camX, camY, camZ, buffers, 0.0f, activeMode.r, activeMode.g, activeMode.b);
+                highlightBlock(pos, matrices, level, camX, camY, camZ, buffers, 0.0f, colorR, colorG, colorB);
             }
         } while (rendered < MAX_BLOCKS && breakableBlocks.hasNext());
 

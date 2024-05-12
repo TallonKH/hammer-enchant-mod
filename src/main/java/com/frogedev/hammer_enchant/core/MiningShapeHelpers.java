@@ -1,6 +1,7 @@
-package com.frogedev.hammer_enchant.util;
+package com.frogedev.hammer_enchant.core;
 
 import com.frogedev.hammer_enchant.ModEnchantments;
+import com.frogedev.hammer_enchant.util.FilteredIterator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -17,29 +18,17 @@ import net.minecraftforge.fluids.IFluidBlock;
 import java.util.*;
 
 public class MiningShapeHelpers {
-    public interface MiningShapeHandler extends MiningShapeNeighborPredicate {
-        boolean shouldTryHandler(Player player, ItemStack tool);
-
-        void perform(Level level, ServerPlayer player, ItemStack tool, List<BlockPos> blocks);
-
-        boolean testOrigin(Level level, Player player, ItemStack tool, BlockPos pos);
-
-        Set<UUID> playerTracker();
-    }
-
-    public interface MiningShapeNeighborPredicate {
-        boolean testNeighbor(Level level, Player player, ItemStack tool, BlockPos originPos, BlockState originBlockState, BlockPos neighborPos, BlockState neighborBlockState);
-    }
+    private static Set<UUID> playerTracker = new HashSet<>();
 
     public static boolean handleMiningShapeEvent(
             ServerPlayer player,
             ItemStack tool,
             BlockPos originPos,
             HitResult hitResult,
-            MiningShapeHandler handler
+            IHammerAction handler
     ) {
         UUID playerUUID = player.getUUID();
-        if (handler.playerTracker().contains(playerUUID)) {
+        if (playerTracker.contains(playerUUID)) {
             return false;
         }
 
@@ -74,13 +63,13 @@ public class MiningShapeHelpers {
             return false;
         }
 
-        handler.playerTracker().add(playerUUID);
+        playerTracker.add(playerUUID);
         handler.perform(level, player, tool, targetBlockPositions);
-        handler.playerTracker().remove(playerUUID);
+        playerTracker.remove(playerUUID);
         return true;
     }
 
-    public static Iterator<BlockPos> getCandidateBlockPositions(Player player, ItemStack tool, HitResult hitResult, BlockPos origin, MiningShapeNeighborPredicate neighborPredicate) {
+    public static Iterator<BlockPos> getCandidateBlockPositions(Player player, ItemStack tool, HitResult hitResult, BlockPos origin, IHammerAction actionHandler) {
         Level level = player.level();
         BlockState originBlockState = level.getBlockState(origin);
 
@@ -93,7 +82,7 @@ public class MiningShapeHelpers {
                 return false;
             }
 
-            return neighborPredicate.testNeighbor(level, player, tool, origin, originBlockState, blockPos, blockState);
+            return actionHandler.testNeighbor(level, player, tool, origin, originBlockState, blockPos, blockState);
         });
     }
 
